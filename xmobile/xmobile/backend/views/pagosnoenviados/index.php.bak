@@ -1,0 +1,76 @@
+<?php
+
+use yii\helpers\Html;
+use yii\grid\GridView;
+use yii\widgets\Pjax;
+/* @var $this yii\web\View */
+/* @var $searchModel backend\models\PagosSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
+$this->title = Yii::t('app', 'Pagos no enviados');
+$this->params['breadcrumbs'][] = $this->title;
+?>
+<div class="pagos-index">
+
+    <h1><?= Html::encode($this->title) ?></h1>
+
+    <p>
+        <?php Html::a(Yii::t('app', 'Create Pagos'), ['create'], ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <?php Pjax::begin(); ?>
+    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        'filterModel' => $searchModel,
+        'columns' => [
+            [
+				'header'=>'EST',
+				'format' => 'raw',
+				'value'=>function($data){
+					if($data->estadoEnviado == 1){
+						return '<span class="label label-success">Sap</span>';
+                    }
+                    else if($data->estadoEnviado == 0){
+						return '<span class="label label-warning">Midd</span>';
+                    }
+                    else if($data->estadoEnviado == 9){
+						return '<span class="label label-danger">Cancel</span>';
+					}
+                    else {
+						return '<span class="label label-danger">Elim</span>';
+					}
+				}
+			],
+            //['class' => 'yii\grid\SerialColumn'],
+
+            //'id',
+            'documentoId',
+			'recibo',
+            'clienteId',
+            'formaPago',			
+           // 'tipoCambioDolar',
+            //'moneda',
+            'monto',
+            //'numCheque',
+            //'numComprobante',
+            //'numTarjeta',
+            //'numAhorro',
+            //'numAutorizacion',
+            
+            //'ci',
+            'fecha',
+            'hora',
+            //'estadoEnviado',
+            //'cambio',
+            //'monedaDolar',
+			'bancoCode',
+			['class' => 'yii\grid\ActionColumn', 'template' => '{view}'],
+            //['class' => 'yii\grid\ActionColumn'],
+        ],
+    ]); ?>
+
+    <?php Pjax::end(); ?>
+
+</div>

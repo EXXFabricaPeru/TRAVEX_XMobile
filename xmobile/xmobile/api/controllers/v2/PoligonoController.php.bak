@@ -1,0 +1,130 @@
+<?php
+
+namespace api\controllers\v2;
+
+use yii;
+use yii\rest\ActiveController;
+use backend\models\Servislayer;
+use yii\filters\auth\QueryParamAuth;
+use api\traits\Respuestas;
+use backend\models\Poligonocabecera;
+use backend\models\Poligonocabeceraterritorio;
+use backend\models\Poligonodetalle;
+use backend\models\Poligonocliente;
+use backend\models\Usuarioconfiguracion;
+use backend\models\Vendedores;
+use backend\models\Rutacabecera;
+use backend\models\Rutadetalle;
+use backend\models\v2\Documentos;
+
+class PoligonoController extends ActiveController {
+    
+    use Respuestas;
+    
+    public $modelClass = 'backend\models\Usuario';
+    
+    protected function verbs() {
+        return [
+            //'index' => ['GET', 'HEAD'],
+            //'view' => ['GET', 'HEAD'],
+            'index' => ['POST'],
+            'view' => ['POST'],
+            'create' => ['POST'],
+            'update' => ['PUT', 'PATCH'],
+            'delete' => ['DELETE'],
+        ];
+    }
+
+    public function actions() {
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['view']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        return $actions;
+    }
+
+    public function actionIndex() {
+        
+
+        $idUsuario = Yii::$app->request->post('usuario');
+        ///SE OBTIENE LOS DATOS DEL USUARIO   
+        $usuarioConfig = Usuarioconfiguracion::find()->where('idUser = '.$idUsuario)->asArray()->one();
+        $repartidor=$usuarioConfig['codEmpleadoVenta'];
+        
+		if($usuarioConfig['TipoUsuario']==0){//por verdad SI ES VENDEDOR Vendedor
+            $cabeceraTerritorio = Poligonocabeceraterritorio::find()->where('idVendedor = '.$idUsuario)->asArray()->all();
+            //if(isset($cabeceraTerritorio['id'])){
+            foreach ($cabeceraTerritorio as $key => $value) {
+                # code...
+                $poligonoCliente = Poligonocliente::find()->where('idCabecera = '.$value['id'])->orderby('posicion asc')->asArray()->all();
+            
+                $resultado[$key]['id'] = $value['id'];
+                $resultado[$key]['fechaRegistro']= $value['fechaRegistro'];
+                $resultado[$key]['fechaSistema']= $value['fechaSistema'];
+                $resultado[$key]['dia'] = $value['dia'];
+                $resultado[$key]['idVendedor']= $value['idVendedor'];
+                $resultado[$key]['vendedor']= $value['vendedor'];
+                $resultado[$key]['tipoVendedor']= 0;
+                $resultado[$key]['poligono']= $poligonoCliente;
+                    
+                
+            }  
+            Yii::error("detalle poligono Rodri");
+            Yii::error($resultado);   
+            if(count($resultado)>0){
+                return $this->correcto($resultado);
+            }
+            else{
+                return $this->error('No hay rutas agendadas',201);
+            }        
+           
+        }
+        else{//por falso SI ES DESPACHADOR
+		    // consulta directa a sap
+            $documentos =new Documentos();
+
+            $resultado = $documentos->obtenerListaPicking($repartidor);
+            Yii::error("Resultado picking: ");
+
+            $cabeceraDoc=array();
+            $rutadetalle=array();
+            foreach ($resultado as $key => $value) {
+            	$rutadetalle[$key]['id'] = 0;
+				$rutadetalle[$key]['cardcode'] = $value['CardCode'];
+				$rutadetalle[$key]['cardname'] = $value['CardName'];
+				$rutadetalle[$key]['latitud'] = $value['U_Latitud'];
+				$rutadetalle[$key]['longitud'] = $value['U_Longitud'];
+				$rutadetalle[$key]['territoryid'] =$value['U_Territorio'];
+				$rutadetalle[$key]['territoryname'] = '';
+				$rutadetalle[$key]['posicion'] = 0;
+				$rutadetalle[$key]['nombreDireccion'] = $value['DireccionEntrega'];
+				$rutadetalle[$key]['calle'] = '-';
+				$rutadetalle[$key]['idCabecera'] = 0;
+                $fecha=explode(' ', $value['PickDate']);     
+            }
+            $cabeceraDoc['id'] = 0;
+            $cabeceraDoc['fechaRegistro']= $fecha[0];
+            $cabeceraDoc['fechaSistema']= "";
+            $cabeceraDoc['dia'] = '0';
+            $cabeceraDoc['idVendedor']= "";
+            $cabeceraDoc['vendedor']= $repartidor;
+            $cabeceraDoc['tipoVendedor']= 1;
+            $cabeceraDoc['poligono']= $rutadetalle;
+            $resultado=[];
+            array_push($resultado,$cabeceraDoc);
+            
+            //$resultado=json_encode($resultado);
+            Yii::error($resultado);   
+            if(count($resultado)>0){
+                return $this->correcto($resultado);
+            }
+            else{
+                return $this->error('No hay rutas agendadas',201);
+            }
+			
+        }
+       
+    }
+}

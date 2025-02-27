@@ -1,0 +1,296 @@
+<?php
+
+use yii\helpers\Html;
+use yii\helpers\Url;
+
+/* @var $this yii\web\View */
+
+$this->title = '';
+$this->params['breadcrumbs'][] = $this->title;
+
+//funcion para el habilitar menu sincronizar
+function getPermisosMenuSincro2($menu){
+
+    $permisoSincro=Yii::$app->session->get('PERMISOSMENUSINCRO');
+    $permisoSincro=explode('@',$permisoSincro);
+    foreach ($permisoSincro as $key => $value) {
+        if(trim(strtolower($value))==trim(strtolower($menu))){
+            Yii::error("value: ".trim(strtolower($value))." = menu: ".trim(strtolower($menu)));
+            return '';
+        }
+               
+    }
+    return 'disabled';
+}
+//fin del menu sincronizar
+
+?>
+<div class="site-index">
+    <style>
+        .loader {
+            position: fixed;
+            left: 48%px;
+            top: 0px;
+           
+            z-index: 9999;
+            background: url('103.gif') 50% 50% no-repeat rgb(249,249,249);
+            opacity: .8;
+        }
+        .loaderText {
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            opacity: .8;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hide-loader{
+            display:none;
+        }
+    </style>
+    <div id="loader" class="loader" style="display:none">
+    </div>
+    <div class="jumbotron">
+        <h1>Xmobile - Middleware</h1>
+    </div>
+</div>
+
+<div class="modal fade" id="divCambio" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" style="width:760px;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tipo de cambio</h4>
+            </div>
+            <div class="modal-body">
+                <table width="100%">
+                    <tr>
+                        <td style="width:250px">Ingrese el tipo de cambio para hoy:</td>
+                        <td>
+                            <input type="text" name="tipoCambio" id="tipoCambio" class="form-control">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="grabarCambio();" data-dismiss="modal">Grabar</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="divSicronizar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" style="width:750px;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Sincronizar</h4>
+            </div>
+            <div class="modal-body">
+                <table width="100%">
+                    <tr>
+                        <td style="width:150px; text-align:right;">Grupos U. med.&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkGUMed" id="chkGUMed" class="form-control" <?=getPermisosMenuSincro2('Grupos U. med.')?> /></td>
+                        <td style="width:150px; text-align:right;">Almacenes&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkAlmacen" id="chkAlmacen" class="form-control" <?=getPermisosMenuSincro2('Almacenes')?> /></td>
+                        <td style="width:150px; text-align:right;">Lista de precios&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkLPrecio" id="chkLPrecio" class="form-control" <?=getPermisosMenuSincro2('Lista de precios')?> /></td>
+                        <td style="width:150px; text-align:right;">Unidades de medida&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkUmed" id="chkUmed" class="form-control" <?=getPermisosMenuSincro2('Unidades de medida')?> /></td>
+                    </tr>
+                    <tr>
+                        <td style="width:150px; text-align:right;">Vendedores&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkVendedor" id="chkVendedor" class="form-control" <?=getPermisosMenuSincro2('Vendedores')?> /></td>
+                        <td style="width:150px; text-align:right;">Clientes grupo&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkGCliente" id="chkGCliente"  class="form-control" <?=getPermisosMenuSincro2('Clientes grupo')?> /></td>
+                        <td style="width:150px; text-align:right;">Moneda&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkMoneda" id="chkMoneda" class="form-control" <?=getPermisosMenuSincro2('Moneda')?> /></td>
+                        <td style="width:150px; text-align:right;">Cliente&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkCliente" id="chkCliente" class="form-control" <?=getPermisosMenuSincro2('Cliente')?> /></td>
+                    </tr>
+                    <tr>
+                        <td style="width:150px; text-align:right;">Productos&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkProducto" id="chkProducto" class="form-control" <?=getPermisosMenuSincro2('Productos')?> /></td>
+                        <td style="width:150px; text-align:right;">Lotes&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkLote" id="chkLote" class="form-control" <?=getPermisosMenuSincro2('Lotes')?> /></td>
+                        <td style="width:150px; text-align:right;">Cod. de pago&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkCPago" id="chkCPago" class="form-control" <?=getPermisosMenuSincro2('Cod. de pago')?> /></td>
+                        <td style="width:150px; text-align:right;">Territorio&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkTerritorio" id="chkTerritorio" class="form-control" <?=getPermisosMenuSincro2('Territorio')?> /></td>
+                    </tr>
+                    <tr>
+                        <td style="width:150px; text-align:right;">Rol Empleado&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkREmpleado" id="chkREmpleado" class="form-control" <?=getPermisosMenuSincro2('Rol Empleado')?> /></td>
+                        <td style="width:150px; text-align:right;">Info. Empleado&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkIEmpleado" id="chkIEmpleado" class="form-control" <?=getPermisosMenuSincro2('Info. Empleado')?> /></td>
+                        <td style="width:150px; text-align:right;">Grupo Producto&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkGProducto" id="chkGProducto" class="form-control" <?=getPermisosMenuSincro2('Grupo Producto')?> /></td>
+                        <td style="width:150px; text-align:right;">Descuento esp.&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkEDescuento" id="chkEDescuento" class="form-control" <?=getPermisosMenuSincro2('Descuento esp.')?> /></td>
+
+                    </tr>
+                    <tr>
+
+                        <td style="width:150px; text-align:right;">Grupo descuento&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkGDescuento" id="chkGDescuento" class="form-control" <?=getPermisosMenuSincro2('Grupo descuento')?> /></td>
+                        <td style="width:150px; text-align:right;">Series Productos&nbsp;</td><td style="width:25px"><input type="checkbox" name="seriesp" id="seriesp" class="form-control" <?=getPermisosMenuSincro2('Series Productos')?>  /></td>
+
+                        <td style="width:150px; text-align:right;">Ind. impuesto&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkIImpuesto" id="chkIImpuesto" class="form-control" <?=getPermisosMenuSincro2('Ind. impuesto')?> /></td>
+                        <td style="width:150px; text-align:right;">Tipo de cambio&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkTCambio" id="chkTCambio" class="form-control" <?=getPermisosMenuSincro2('Tipo de cambio')?> /></td>
+
+
+                    </tr>
+                    <tr>
+                        <td style="width:150px; text-align:right;">Cuentas contables&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkCContable" id="chkCContable" class="form-control" <?=getPermisosMenuSincro2('Cuentas contables')?> /></td>
+						<td style="width:150px; text-align:right;">Industrias&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkIndustrias" id="chkIndustrias" class="form-control" <?=getPermisosMenuSincro2('Industrias')?> /></td>
+                        <td style="width:150px; text-align:right;">Bonificaciones&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkBonificacion" id="chkBonificacion" class="form-control" <?=getPermisosMenuSincro2('Bonificaciones')?> /></td>
+                        <td style="width:150px; text-align:right;">Canales de venta&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkTCanal" id="chkTCanal" class="form-control" <?=getPermisosMenuSincro2('Canales de venta')?> /></td>
+                    </tr>
+                    <tr>
+                        <!--<td style="width:150px; text-align:right;">Lbcc&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkLbcc" id="chkLbcc" class="form-control" /></td>-->
+                         <!--<td style="width:150px; text-align:right;">Leyenda&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkLeyenda" id="chkLeyenda" class="form-control" /></td>
+                        <td style="width:150px; text-align:right;">Motivo anulacion&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkMAnulacion" id="chkMAnulacion" class="form-control" /></td>-->
+                        <!--<td style="width:150px; text-align:right;">Series&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkSerie" id="chkSerie" class="form-control" /></td>
+                        <td style="width:150px; text-align:right;">Entregas&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkEntrega" id="chkEntrega" class="form-control" /></td>-->
+                        <td style="width:150px; text-align:right;">Empresa&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkEmpresa" id="chkEmpresa" class="form-control" <?=getPermisosMenuSincro2('Empresa')?> /></td>
+                         <!--<td style="width:150px; text-align:right;">Facturas&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkFactura" id="chkFactura" class="form-control" /></td>-->
+                        <td style="width:150px; text-align:right;">Promociones&nbsp;</td><td style="width:25px"><input type="checkbox" name="chkPromociones" id="chkPromociones" class="form-control" <?=getPermisosMenuSincro2('Promociones')?> /></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <table width="100%">
+                    <tr>
+                        <td style="width:90px;text-align:left;">Marcar todos&nbsp;</td>
+                        <td style="text-align:left; width:25px;">
+                            <input type="checkbox" name="chkTodos" id="chkTodos" class="form-control" onclick="marcarTodos(this);" />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-primary" onclick="enviarSincronizar();" data-dismiss="modal">Sincronizar</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /*var $btn = document.getElementById('btn-sinc');
+     $btn.addEventListener('click',function(event){
+     //event.preventDefault();
+     var $loader = document.getElementById('loader');
+     $loader.style.display = 'block';
+     });*/
+
+    function abrirCambio() {
+        var loc = window.location.pathname;
+        loc = loc.split('/');
+        $.ajax({
+            type: 'GET',
+            url: '/' + loc[1] + '/backend/web/index.php?r=tipocambioparalelo/index',
+            success: function (response) {
+                console.log(response);
+                $('#divCambio').modal();
+                $('#divCambio').show('show');
+                var cambio = $("#tipoCambio");
+                cambio.val(response[0].tipoCambio);
+            }
+        });
+    }
+
+    function grabarCambio() {
+        var loc = window.location.pathname;
+        loc = loc.split('/');
+        var cambio = $("#tipoCambio");
+        $.ajax({
+            type: 'POST',
+            url: '/' + loc[1] + '/backend/web/index.php?r=tipocambioparalelo/create',
+            data: {tipocambio: cambio.val()},
+            success: function (response) {
+            }
+        });
+    }
+
+    function abrirSincronizar() {
+        var loc = window.location.pathname;
+        loc = loc.split('/');
+        $('#divSicronizar').modal();
+        $('#divSicronizar').show('show');
+    }
+
+    function enviarSincronizar() {
+        var $loader = document.getElementById('loader');
+        $loader.style.display = 'block';
+        var loc = window.location.pathname;
+        loc = loc.split('/');
+        var chkGUMed = $("#chkGUMed");
+        var chkAlmacen = $("#chkAlmacen");
+        var chkLPrecio = $("#chkLPrecio");
+        var chkUmed = $("#chkUmed");
+        var chkVendedor = $("#chkVendedor");
+        var chkGCliente = $("#chkGCliente");
+        var chkMoneda = $("#chkMoneda");
+        var chkCliente = $("#chkCliente");
+        var chkProducto = $("#chkProducto");
+        var chkLote = $("#chkLote");
+        var chkCPago = $("#chkCPago");
+        var chkTerritorio = $("#chkTerritorio");
+        var chkREmpleado = $("#chkREmpleado");
+        var chkIEmpleado = $("#chkIEmpleado");
+        var chkGProducto = $("#chkGProducto");
+        var chkLbcc = $("#chkLbcc");
+        var chkEDescuento = $("#chkEDescuento");
+        var chkGDescuento = $("#chkGDescuento");
+        var chkLeyenda = $("#chkLeyenda");
+        var chkMAnulacion = $("#chkMAnulacion");
+        var chkFactura = $("#chkFactura");
+        var chkIImpuesto = $("#chkIImpuesto");
+        var chkTCambio = $("#chkTCambio");
+        var chkCContable = $("#chkCContable");
+        var chkSerie = $("#chkSerie");
+        var chkEntrega = $("#chkEntrega");
+        var chkEmpresa = $("#chkEmpresa");
+        var chkSeriesp = $("#seriesp");
+		var chkIndustrias = $('#chkIndustrias');
+        var chkBonificacion = $('#chkBonificacion');
+        var chkCanal = $('#chkTCanal');
+        var chkPromociones = $('#chkPromociones');
+        $.ajax({
+            type: 'POST',
+            url: '/' + loc[1] + '/backend/web/index.php?r=site/sincronizar',
+            data: {
+                GUMed: chkGUMed[0].checked,
+                Almacen: chkAlmacen[0].checked,
+                LPrecio: chkLPrecio[0].checked,
+                Umed: chkUmed[0].checked,
+                Vendedor: chkVendedor[0].checked,
+                GCliente: chkGCliente[0].checked,
+                Moneda: chkMoneda[0].checked,
+                Cliente: chkCliente[0].checked,
+                Producto: chkProducto[0].checked,
+                Lote: chkLote[0].checked,
+                CPago: chkCPago[0].checked,
+                Territorio: chkTerritorio[0].checked,
+                REmpleado: chkREmpleado[0].checked,
+                IEmpleado: chkIEmpleado[0].checked,
+                GProducto: chkGProducto[0].checked,
+                Lbcc: false,
+                EDescuento: chkEDescuento[0].checked,
+                GDescuento: chkGDescuento[0].checked,
+                Leyenda: false,
+                MAnulacion: false,
+                Factura: false,
+                IImpuesto: chkIImpuesto[0].checked,
+                TCambio: chkTCambio[0].checked,
+                CContable: chkCContable[0].checked,
+                Serie: false,
+                Entrega: false,
+                Empresa: chkEmpresa[0].checked,
+                seriesp: chkSeriesp[0].checked,
+                Industrias: chkIndustrias[0].checked,
+                Bonificacion: chkBonificacion[0].checked,
+                Canal: chkTCanal[0].checked,
+                Promociones: chkPromociones[0].checked,
+            },
+            success: function (response) {
+                $loader.style.display = 'none';
+                //$('#loader').addClass("hide-loader");
+            },
+            error: function (response) {
+                alert(response.statusText);
+                $loader.style.display = 'none';
+                //$('#loader').addClass("hide-loader");
+            }
+        });
+    }
+   
+</script>

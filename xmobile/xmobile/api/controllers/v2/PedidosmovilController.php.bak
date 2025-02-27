@@ -1,0 +1,735 @@
+<?php
+
+namespace api\controllers\v2;
+
+use backend\models\Combos;
+use backend\models\Unidadesmedida;
+use Carbon\Carbon;
+use Yii;
+use yii\base\Exception;
+use yii\rest\ActiveController;
+use backend\models\Servislayer;
+use backend\models\Cabeceradocumentos;
+use backend\models\Detalledocumentos;
+use api\traits\Respuestas;
+use backend\models\v2\Pagos;
+use backend\models\Historialdocumentos;
+use api\controllers\Pagosmoviles;
+use backend\models\v2\Sapenviodoc;
+use backend\models\v2\Sapenviopagos;
+use backend\models\Sap;
+
+class PedidosmovilController extends ActiveController {
+
+    use Respuestas;
+
+    const IT = 3;
+    Public $aux_estado=3;
+    public $modelClass = 'backend\models\User';
+
+    protected function verbs() {
+        return [
+            'index' => ['GET', 'HEAD'],
+            'view' => ['GET', 'HEAD'],
+            'create' => ['POST'],
+            'update' => ['PUT', 'PATCH'],
+            'delete' => ['DELETE'],
+        ];
+    }
+
+    public function actions() {
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['view']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        return $actions;
+    }
+
+    private function estadosDoc($cod) {
+        $sql = 'SELECT * FROM cabeceradocumentos WHERE idDocPedido = "' . $cod . '";';
+        $resp = Yii::$app->db->createCommand($sql)->queryAll();
+        $doctype = 0;
+        $DocEntry = 0;
+        if (count($resp) > 0) {
+            $DocEntry = $resp[0]['DocEntry'];
+            switch ($resp[0]['DocType']) {
+                case "DOF":
+                    $doctype = 23;
+                    break;
+                case "DOP":
+                    $doctype = 17;
+                    break;
+                case "DFA":
+                    $doctype = 13;
+                    break;
+            }
+        } else {
+            $doctype = 0;
+            $DocEntry = 0;
+        }
+        return ['doctype' => $doctype, 'docentry' => $DocEntry];
+    }
+
+    public function actionCreate() {
+        $datos = Yii::$app->request->post();
+        Yii::error(" llega documento de movil" .json_encode($datos));
+        $arr = [];
+        try {
+            foreach ($datos as $pedido) {
+                $this->guardarlog($pedido);
+                $this->registraHistorialDoc($pedido);
+                if($pedido["header"]["DocType"]=='DFA'){
+                    Pagos::registrarHistorial($pedido["pagos"]); 
+                }
+               
+                $id = 0;
+
+                $respuesta=$this->validaExisteDocumento($pedido);
+                Yii::error("RESPUESTA-DOCUMENTO VALIDADOR: ".json_encode($respuesta));
+                if(!$respuesta['registro']) return $this->correcto($respuesta);//SE CORTA EL FLUJO SE RETOTNA EL ERROR
+
+                if($pedido["header"]["estadosend"] == 7){                
+                    $id = $this->updateHeader($pedido);
+                    //ENVIAR A MODELO SAP ENVIO DOC// 
+                } 
+                else {
+                    Yii::error("INGRESO A REGISTRAR EL DOCUMENTO");
+
+                    $id = $this->registerHeader($pedido);
+                    //SI EL ID ES DIFERENTE DE CERO SE REGISTRO CORRECTAMENTE LA CABECERA
+                    if($id!=0){
+                        $respuestaDetalle=$this->registerDetalles($id, $pedido["detalles"], $pedido["header"]["clone"], $pedido,$pedido["header"]["PriceListNum"]);
+                        //SI EL DETALLE SE REGISTRA CORRECTAMENTE Y SI EL DOCUMENTO ES FACTURA SE REGISTRA EL PAGO
+                        Yii::error($pedido["header"]["DocType"]);
+                        if($respuestaDetalle and $pedido["header"]["DocType"]=='DFA'){
+                            Yii::error("PAGO DOCUMENTO");
+                            $aux2_sql = 'UPDATE  lbcc  set  U_NumeroSiguiente = U_NumeroSiguiente + 1 WHERE U_NumeroAutorizacion = "' . $pedido["header"]["U_LB_NumeroAutorizac"] . '";';
+                            Yii::$app->db->createCommand($aux2_sql)->execute();
+                            //SE REGISTRA EL PAGO AL MIDDLEWARE//
+                            if($pedido["header"]["PayTermsGrpCode"]!=4){
+                                $respuestaP= Pagos::registrarPago($pedido["pagos"],$id);// Registro middleware 
+                            }
+                            else{
+                                $respuestaP = [
+                                    "id" => 0,
+                                    "estado" => 3,
+                                    "anulado" => 0,
+                                    "recibo" => 0,
+                                    "numeracion"=> 0,
+                                    "registro"=>true,
+                                    "mensaje"=>"Pago a credito"
+                                ];
+                            }
+                            
+                            //POR VERDAD SI PASA EL PAGO AL MID SE ENVIA LA FACTURA SAP//
+                            if($respuestaP['registro']){
+                        
+                                Yii::error("se registro el pago a midd");
+                                //ENVIO FACTURA SAP//
+                                $respuestaEnvio=Sapenviodoc::facturas($id);
+                                //ENVIO PAGO A SAP//
+                                if($respuestaEnvio['registro'] and $respuestaP['id']!=0){
+                                    $respuestaP=Sapenviopagos::pagar($respuestaP['id']);
+                                    //$respuestaP=Sapenviopagos::pagar($id);
+                                    //$estadoDocumento=3;
+                                }
+                                
+                            }
+                            else{
+                                //SE REGISTRO EN EL MIDD PERO NO PASO A SAP//
+                                $respuestaEnvio = [
+                                    "estado" => 2,
+                                    "anulado" => 0,
+                                    "codigoDoc" => $pedido["header"]["idDocPedido"],
+                                    "numeracion"=>0,
+                                    "mensaje"=>"EL documento no paso a sap"
+                                ];
+                            }   
+                        }
+                        elseif($respuestaDetalle and $pedido["header"]["DocType"]!='DFA'){
+                            //ENVIO DEL DOCUMENTO QUE NO ES FACTURA A SAP//
+                            $respuestaEnvio=Sapenviodoc::documento($id);
+                        }
+                        else {
+                            //NO REGISTRO EL DETALLE DE DOCUMENTO HACER UN ROLLBACK A LA CABECERA//
+                            $respuestaEnvio = [
+                                "estado" => 0,
+                                "anulado" => 0,
+                                "codigoDoc" => $pedido["header"]["idDocPedido"],
+                                "numeracion"=>0,
+                                "mensaje"=>"Error! no se registro el documento"
+                            ];
+                            $respuestaP = [
+                                "estado" => 0,
+                                "anulado" => 0,
+                                "recibo" => 0,
+                                "numeracion"=> 0,
+                                "registro"=>false,
+                                "mensaje"=>"Error! no se registro el pago"
+                            ];
+                        }
+                    }
+                    else {
+                        $respuestaEnvio = [
+                            "estado" => 0,
+                            "anulado" => 0,
+                            "codigoDoc" => $pedido["header"]["idDocPedido"],
+                            "numeracion"=>0,
+                            "mensaje"=>"Error! no se registro el documento"
+                        ];
+                        $respuestaP = [
+                            "estado" => 0,
+                            "anulado" => 0,
+                            "recibo" => 0,
+                            "numeracion"=> 0,
+                            "registro"=>false,
+                            "mensaje"=>"Error! no se registro el pago"
+                        ];
+                    }
+                }
+                //$this->actualizaProductoAlmacen($pedido["header"]["DocType"],$pedido["header"]["Reserve"],$pedido["detalles"]);
+                if($pedido["header"]["DocType"]=='DFA'){
+                    $arr = [
+                        "estadoDoc" =>$respuestaEnvio['estado'],
+                        "anuladoDoc" => 0,
+                        "codigoDoc" =>$respuestaEnvio["codigoDoc"],
+                        "numeracionDoc"=>$respuestaEnvio["numeracion"],
+                        "mensajeDoc"=>$respuestaEnvio["mensaje"],
+                        "estadoPago" =>$respuestaP['estado'],
+                        "anuladoPago" =>0,
+                        "codigoPago" =>$respuestaP['recibo'] ,
+                        "numeracionPago"=>$respuestaP["numeracion"],
+                        "mensajePago"=>$respuestaP['mensaje']   
+                    ];
+                }else{
+                    $arr = [
+                        "estadoDoc" =>$respuestaEnvio['estado'],
+                        "anuladoDoc" => 0,
+                        "codigoDoc" =>$respuestaEnvio["codigoDoc"],
+                        "numeracionDoc"=>$respuestaEnvio["numeracion"],
+                        "mensajeDoc"=>$respuestaEnvio["mensaje"]
+                    ];
+                }
+            }
+            
+            
+        } catch (\Exception $err) {
+            Yii::error("try error datos de registro (documento): ".$err->getMessage());
+            Yii::error("try error datos de registro (documento): ".json_encode($datos));
+            $response = Yii::$app->response;
+            $response->statusCode=400;
+            $response->format = \yii\web\Response::FORMAT_JSON;
+            $response->data = ['message' => 'Algo salio mal, sus datos no se guardaron ',"error_trace"=>json_encode($err)];
+            $arr = [
+                "estadoDoc" =>0,
+                "anuladoDoc" => 0,
+                "codigoDoc" =>0,
+                "numeracionDoc"=>0,
+                "mensajeDoc"=>"ERROR! DOCUMENTO NO PASO A SAP: ".$err->getMessage(),
+                "estadoPago" =>0,
+                "anuladoPago" =>0,
+                "codigoPago" =>0 ,
+                "numeracionPago"=>0,
+                "mensajePago"=>"ERROR! PAGO NO PASO A SAP"
+                
+            ];
+
+        }
+        Yii::error("RESPUESTA-DOCUMENTO: ".json_encode($arr));
+        return $this->correcto($arr);
+    }
+
+    public function updatenumeracion($id, $tipo) {
+        $sql = '';
+        switch ($tipo) {
+            case('DOP'):
+                $sql = ' UPDATE numeracion SET numdop = (numdop + 1) WHERE iduser = ' . $id;
+                break;
+            case('DOF'):
+                $sql = ' UPDATE numeracion SET numdof = (numdof + 1) WHERE iduser = ' . $id;
+                break;
+            case('DFA'):
+                $sql = ' UPDATE numeracion SET numdfa = (numdfa + 1) WHERE iduser = ' . $id;
+                break;
+            case('DOE'):
+                $sql = ' UPDATE numeracion SET numdoe = (numdoe + 1) WHERE iduser = ' . $id;
+                break;
+        }
+        return Yii::$app->db->createCommand($sql)->execute();
+    }
+
+    public function registerDetalles($id, $detalles, $clone, $pedido,$listaPrecio) {
+        if (count($detalles) > 0) {
+            $fecha = Carbon::createFromFormat('Y-m-d H:i:s', $pedido["header"]["fecharegistro"]);
+            Yii::error(" DEVD  detalles " .json_encode($detalles));
+            foreach ($detalles as $lineaPedido) {
+                if ($lineaPedido["LineTotal"] >= 0) {
+                    $doctype = 0;
+                    $docentry = 0;
+                    if ($clone != '0') {
+                        $data = $this->estadosDoc($clone);
+                        $doctype = $data['doctype'];
+
+                        $docentry = $data['docentry'];
+                    }
+                    if ($lineaPedido["unidadid"]==""){
+                        $qauxuom="Select Code from vi_productounidad where ItemCode='{$lineaPedido["ItemCode"]}'";
+                        $res_qauxuom=Yii::$app->db->createCommand($qauxuom)->queryOne();
+                        $lineaPedido["unidadid"]=$res_qauxuom["Code"];
+                    }
+                    if($lineaPedido["Currency"]=="undefined"){
+                        $lineaPedido["Currency"]="BS";
+                        }
+                    $linea = new Detalledocumentos();
+                    $linea->DocNum = isset($lineaPedido["DocNum"]) ? $lineaPedido["DocNum"] : 0;
+                    $linea->LineNum = isset($lineaPedido["LineNum"]) ? $lineaPedido["LineNum"] : 0;
+                    $linea->BaseType = isset($lineaPedido["BaseType"]) ? $lineaPedido["BaseType"] : $doctype;
+                    $linea->BaseEntry = isset($lineaPedido["BaseEntry"]) ? $lineaPedido["BaseEntry"] : $docentry;
+                    $linea->BaseLine = isset($lineaPedido["BaseLine"]) ? $lineaPedido["BaseLine"] : 0;
+                    $linea->LineStatus = isset($lineaPedido["LineStatus"]) ? $lineaPedido["LineStatus"] : 0;
+                    $linea->ItemCode = isset($lineaPedido["ItemCode"]) ? $lineaPedido["ItemCode"] : 0;
+                    $linea->Dscription = isset($lineaPedido["Dscription"]) ? $lineaPedido["Dscription"] : 0;
+                    $linea->Quantity = isset($lineaPedido["Quantity"]) ? $lineaPedido["Quantity"] : 0;
+                    $linea->OpenQty = isset($lineaPedido["OpenQty"]) ? $lineaPedido["OpenQty"] : 0;
+                    $linea->Price = isset($lineaPedido["Price"]) ? $lineaPedido["Price"] : 0;
+                    $linea->Currency = 'BS'; //isset($lineaPedido["Currency"])?$lineaPedido["Currency"]:0;
+                    $linea->DiscPrcnt = isset($lineaPedido["DiscPrcnt"]) ? $lineaPedido["DiscPrcnt"] : 0;
+                    $linea->LineTotal = isset($lineaPedido["LineTotal"]) ? $lineaPedido["LineTotal"] : 0;
+                    $linea->WhsCode = isset($lineaPedido["WhsCode"]) ? $lineaPedido["WhsCode"] : 0;
+                    $linea->CodeBars = isset($lineaPedido["CodeBars"]) ? $lineaPedido["CodeBars"] : 0;
+                    $linea->PriceAfVAT = isset($lineaPedido["PriceAfVAT"]) ? $lineaPedido["PriceAfVAT"] : 0;
+                    $linea->TaxCode = isset($lineaPedido["TaxCode"]) ? $lineaPedido["TaxCode"] : 0;
+                    $linea->U_4DESCUENTO = isset($lineaPedido["U_4DESCUENTO"]) ? $lineaPedido["U_4DESCUENTO"] : 0;
+                    $linea->U_4LOTE = isset($lineaPedido["U_4LOTE"]) ? $lineaPedido["U_4LOTE"] : 0;
+                    $linea->GrossBase = isset($lineaPedido["GrossBase"]) ? $lineaPedido["GrossBase"] : 0;
+                    $linea->idDocumento = $pedido["usuariodataid"] . date("y", date_timestamp_get($fecha)) . date("m", date_timestamp_get($fecha)) . $this->numPedido($pedido["header"]["DocNum"]);
+                    $linea->fechaAdd = isset($lineaPedido["fechaAdd"]) ? $lineaPedido["fechaAdd"] : 0;
+                    $linea->unidadid = isset($lineaPedido["unidadid"]) ? $lineaPedido["unidadid"] : 0;
+                    $linea->tc = isset($lineaPedido["tc"]) ? $lineaPedido["tc"] : 0;
+                    $linea->idCabecera = $id;
+                    $linea->DiscMonetary = isset($lineaPedido['descuentoM']) ? $lineaPedido['descuentoM'] : 0;
+                    $linea->LineTotalPay = isset($lineaPedido['LineTotalPay']) ? $lineaPedido['LineTotalPay'] : 0;
+                    $linea->SalesUnitLength = 0; //isset($lineaPedido['SalesUnitLength']) ? $lineaPedido['SalesUnitLength'] : 0;
+                    $linea->SalesUnitWidth = isset($lineaPedido['SalesUnitWidth']) ? $lineaPedido['SalesUnitWidth'] : 0;
+                    $linea->SalesUnitHeight = isset($lineaPedido['SalesUnitHeight']) ? $lineaPedido['SalesUnitHeight'] : 0;
+                    $linea->SalesUnitVolume = isset($lineaPedido['SalesUnitVolume']) ? $lineaPedido['SalesUnitVolume'] : 0;
+                    $linea->DiscTotalPrcnt = $lineaPedido['DiscTotalPrcnt'];
+                    $linea->DiscTotalMonetary = $lineaPedido['DiscTotalMonetary'];
+                    $linea->ICET = isset($lineaPedido['ICEt']) ? $lineaPedido['ICEt'] : 0;
+                    $linea->ICEE = isset($lineaPedido['ICEe']) ? $lineaPedido['ICEe'] : 0;
+                    $linea->ICEP = isset($lineaPedido['ICEp']) ? $lineaPedido['ICEp'] : 0;
+                    $linea->xMOB_Venta1 = isset($lineaPedido["xMOB_Venta1"])?$lineaPedido["xMOB_Venta1"]:0 ;
+                    $linea->xMOB_Venta2 = isset($lineaPedido["xMOB_Venta2"])? $lineaPedido["xMOB_Venta2"]:0;
+                    $linea->xMOB_Venta3 = 0; //informacion de combo
+                    $linea->xMOB_Venta4 = isset($lineaPedido["xMOB_Venta4"])?$lineaPedido["xMOB_Venta4"]:0 ;
+                    $linea->xMOB_Venta5 = isset($lineaPedido["xMOB_Venta5"])? $lineaPedido["xMOB_Venta5"]:0;
+                    $linea->bonificacion = isset($lineaPedido['bonificacion']) ? $lineaPedido['bonificacion'] : 0;
+                  //  $linea->codeBonificacionUse = isset($lineaPedido['codeBonificacionUse']) ? $lineaPedido['codeBonificacionUse'] : 0;
+                    $linea->TreeType = isset($lineaPedido['TreeType']) ? $lineaPedido['TreeType'] : $this->tipoItem($lineaPedido["ItemCode"]);
+                    $linea->listaPrecio= $listaPrecio;
+
+                    $linea->save(false);
+                    $this->registerLotes($pedido["header"]["idDocPedido"], $lineaPedido["lotes"], $lineaPedido["ItemCode"], $pedido["usuariodataid"], $lineaPedido["LineNum"]);
+					$this->registerSeries($pedido["header"]["idDocPedido"], $lineaPedido["series"], $lineaPedido["ItemCode"], $pedido["usuariodataid"], $lineaPedido["LineNum"]);
+				}
+            }
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public function registerSeries($id,$series,$item,$usr,$linea){
+        $contador=count($series);
+        $hoy=date('Y-m-d');
+        if($contador>0){
+            $db = Yii::$app->db;
+            foreach ($series as $serie){
+                $sqlSub = "";
+                $sqlSub .= "INSERT INTO seriesmarketing (DocumentId,SystemNumber,SerialNumber,ItemCode,Status,User,DateUpdate,linea) VALUES (";
+                $sqlSub .= "'{$id}','{$serie["SystemNumber"]}','{$serie["SerialNumber"]}','{$item}','1','{$usr}','{$hoy}','{$linea}')";
+                $db->createCommand($sqlSub)->execute();
+                $sqlSub0 = "";
+                $sqlSub0= "INSERT INTO seriesusadas (ItemCode,DistNumber) VALUES (";
+                $sqlSub0.= "'{$item}','{$serie["SystemNumber"]}')";
+                $db->createCommand($sqlSub0)->execute();
+                $sqlSub1 = " Update seriesproductos set Status=0 where ItemCode='" . $item . "' and SerialNumber='" . $serie["SerialNumber"] . "' ";
+                $db->createCommand($sqlSub1)->execute();
+            }
+        }
+    }
+
+    public function registerLotes($id, $lotes, $item, $usr, $linea) {
+        $contador = count($lotes);
+        $hoy = date('Y-m-d');
+        if ($contador > 0) {
+            $db = Yii::$app->db;
+            foreach ($lotes as $lote) {
+                $sqlSub = "";
+                $sqlSub .= "INSERT INTO lotesmarketing (DocumentId,BatchNum,Quantity,ItemCode,linea,User,DateUpdate) VALUES (";
+                $sqlSub .= "'{$id}','{$lote["BatchNum"]}','{$lote["Quantity"]}','{$item}','{$linea}','{$usr}','{$hoy}')";
+                Yii::error(" insertar lotes " . $sqlSub);
+                $db->createCommand($sqlSub)->execute();
+            }
+        }
+    }
+
+    public function updateHeader($pedido) {/// esto ver mau
+        $pedData = $this->verificador($pedido["header"]["idDocPedido"]);
+        $id = $pedData[0]['id'];
+        $cabecera = Cabeceradocumentos::findOne($id);
+        Yii::error('Estado enviado por el movil ======> ' . json_encode($pedido));
+        //if (isset($pedido["header"]["estado"]) && $pedido["header"]["estado"] == 6)
+        if (isset($pedido["header"]["estadosend"]) && $pedido["header"]["estadosend"] == 7){
+             Yii::error('Actualiza Estado ======> ' );
+            $cabecera->estado = 6;
+            $cabecera->eliminado = 1;
+            $cabecera->U_4MOTIVOCANCELADO = $pedido["header"]["U_4MOTIVOCANCELADO"];
+            $cabecera->U_4MOTIVOCANCELADOCABEZERA = $pedido["header"]["U_4MOTIVOCANCELADOCABEZERA"];
+            $this->aux_estado=6;
+            $cabecera->save(false);
+        }
+
+        return $cabecera->id;
+    }
+
+    public function registerHeader($pedido) {
+        $fechaSend = date("Y-m-d");
+        $aux_vendedor_q="SELECT codEmpleadoVenta from usuarioconfiguracion where IdUser=".$pedido["usuariodataid"];
+        $res_aux_vendedor_q=Yii::$app->db->createCommand($aux_vendedor_q)->queryOne();
+        $pedido["header"]["SlpCode"]=$res_aux_vendedor_q["codEmpleadoVenta"];
+        /**
+         * obtener cardcode
+         *  */
+        $auxCardCode="SELECT CardCode from clientes where (CardCode='".$pedido["header"]["CardCode"]."' or Mobilecod='".$pedido["header"]["CardCode"]."');";
+        $resClientCardCode=Yii::$app->db->createCommand($auxCardCode)->queryOne();
+        Yii::error('cardcode encontrado ======> '.json_encode($resClientCardCode) );
+        $cabecera = new Cabeceradocumentos();
+        $fecha = Carbon::createFromFormat('Y-m-d H:i:s', $pedido["header"]["fecharegistro"]);
+        $cabecera->DocNum = $pedido["header"]["DocNum"];
+        $cabecera->canceled = '0';
+        $cabecera->DocType = $pedido["header"]["DocType"];
+        $cabecera->DocDate = $pedido["header"]["DocDate"];
+        $cabecera->DocDueDate = $pedido["header"]["DocDueDate"];
+        $cabecera->CardCode =  $resClientCardCode &&  $resClientCardCode["CardCode"]?$resClientCardCode["CardCode"]: $pedido["header"]["CardCode"];
+        $cabecera->CardName = $pedido["header"]["CardName"];
+        $cabecera->TaxDate = isset($pedido["header"]["TaxDate"]) ? $pedido["header"]["TaxDate"] : date("Y-m-d");
+        $cabecera->Address = isset($pedido["header"]["idSucursalMobile"][0]["LineNum"])?$pedido["header"]["idSucursalMobile"][0]["LineNum"]:'';//isset($pedido["header"]["Address"]) ? $pedido["header"]["Address"] : '';
+        $cabecera->fecharegistro = $fecha;
+        $cabecera->fechasend = $fechaSend;
+        $cabecera->idDocPedido = $pedido["header"]["idDocPedido"];
+        $cabecera->idUser = $pedido["usuariodataid"];
+        $cabecera->gestion = date("Y", date_timestamp_get($fecha));
+        $cabecera->mes = date("m", date_timestamp_get($fecha));
+        $cabecera->correlativo = substr($pedido["header"]["idDocPedido"],-5);
+        $cabecera->rowNum = isset($pedido["header"]["rowNum"]) ? $pedido["header"]["rowNum"] : count($pedido["detalles"]);
+        $cabecera->DocTotal = $pedido["header"]["DocTotal"];
+        $cabecera->DocTotalPay = $pedido["header"]["DocTotalPay"];
+        $cabecera->DiscPrcnt = $pedido["header"]["DiscPrcnt"];
+        $cabecera->DiscSum = $pedido["header"]["DiscSum"];
+        $cabecera->U_4RAZON_SOCIAL = $pedido["header"]["U_4RAZON_SOCIAL"];
+        $cabecera->U_4NIT = $pedido["header"]["U_4NIT"];
+        $cabecera->PayTermsGrpCode = ($pedido["header"]["PayTermsGrpCode"] == 0) ? -1 : $pedido["header"]["PayTermsGrpCode"];
+        $cabecera->TotalDiscPrcnt = isset($pedido["header"]["TotalDiscPrcnt"]) ? $pedido["header"]["TotalDiscPrcnt"] : 0;
+        $cabecera->TotalDiscMonetary = isset($pedido["header"]["TotalDiscMonetary"]) ? $pedido["header"]["TotalDiscMonetary"] : 0;
+        $cabecera->U_LATITUD = $pedido["header"]["U_LATITUD"];
+        $cabecera->U_LONGITUD = $pedido["header"]["U_LONGITUD"];
+        $cabecera->U_4MOTIVOCANCELADO = $pedido["header"]["U_4MOTIVOCANCELADO"];
+        //  $cabecera->U_4MOTIVOCANCELADOCABEZERA = $pedido["header"]["U_4MOTIVOCANCELADOCABEZERA"];
+        $cabecera->U_4DOCUMENTOORIGEN = $pedido["header"]["U_4DOCUMENTOORIGEN"];
+        $cabecera->U_LB_NumeroAutorizac = isset($pedido["header"]["U_LB_NumeroAutorizac"]) ? $pedido["header"]["U_LB_NumeroAutorizac"] : 0;
+        $cabecera->ControlCode = isset($pedido["header"]["U_LB_CodigoControl"]) ? $pedido["header"]["U_LB_CodigoControl"] : 0;
+        $cabecera->UNumFactura = isset($pedido["header"]["U_LB_NumeroFactura"]) ? $pedido["header"]["U_LB_NumeroFactura"] : 0;
+        $cabecera->U_LB_NumeroFactura = isset($pedido["header"]["U_LB_NumeroFactura"]) ? $pedido["header"]["U_LB_NumeroFactura"] : 0;
+        $cabecera->SlpCode = isset($pedido["header"]["SlpCode"]) ? $pedido["header"]["SlpCode"] : -1;
+        $cabecera->DocCur = isset($pedido["header"]["DocCur"]) ? $pedido["header"]["DocCur"] : null;
+        $cabecera->Reserve = isset($pedido["header"]["Reserve"]) ? $pedido["header"]["Reserve"] : 0;
+        $cabecera->clone = isset($pedido["header"]["clone"]) ? $pedido["header"]["clone"] : 0;
+        $cabecera->giftcard = isset($pedido["header"]["giftcard"]) ? $pedido["header"]["giftcard"] : 0;
+        $cabecera->estado = 2;
+        $cabecera->sucursalxId = $pedido["header"]["sucursalId"];
+        $cabecera->equipoId = $pedido["header"]["equipoId"];
+        $cabecera->papelId = $pedido["header"]["papelId"];
+        $cabecera->Comments = $pedido["header"]["comentario"];
+        $cabecera->grupoproductoscode = $pedido["header"]["grupoproductoscode"];
+        $cabecera->tipotransaccion = $pedido["header"]["tipotransaccion"];
+        $cabecera->tipoestado = $pedido["header"]["tipoestado"];
+        $cabecera->tipocambio = $pedido["header"]["tipocambio"];
+        $cabecera->version = $pedido["version"];
+        //$cabecera->campania = $pedido["header"]["U_CodigoCampania"];
+        //$cabecera->monto = $pedido["header"]["U_ValorSaldo"];
+        try {
+            $cabecera->save(false);
+            $this->updatenumeracion($pedido["usuariodataid"], $pedido["header"]["DocType"]);
+            return $cabecera->id;
+        } catch (\Exception $e) {
+            Yii::error('DOCUMENTO-ERROR'.$e->getMessage());
+            return 0;
+        }
+       
+    }
+
+    public function registerCuotas($cuotas, $usuario, $cabecera) {
+        $iddocpedido = $cabecera["idDocPedido"];
+        $fecharegistro = $cabecera["DocDate"];
+        $cliente = $cabecera["CardCode"];
+        $total = $cabecera["DocTotalPay"];
+        $control = count($cuotas);
+        Yii::error(" insertar cuotas" . $control);
+        $i = 0;
+        $sum_por = 0;
+        foreach ($cuotas as $cuota) {
+            if ($control == $i) {
+                $porcentage = 100 - $sum_por;
+            } else {
+                $porcentage = ($cuota['Total'] / $total) * 100;
+                $sum_por = $sum_por + $porcentage;
+            }
+            $sqlSub = "";
+            $sqlSub .= "INSERT INTO cuotasfactura (iddocpedido,DueDate,Percentage,Total,InstallmentId,usuario,fecharegistro,idcliente) VALUES (";
+            $sqlSub .= "'{$iddocpedido}','{$cuota['DueDate']}','{$porcentage}',{$cuota['Total']},'{$cuota['InstallmentId']}','{$usuario}','{$fecharegistro}','{$cliente}');";
+            Yii::error(" insertar cuotas" . $sqlSub);
+            $db = Yii::$app->db;
+            $db->createCommand($sqlSub)->execute();
+        }
+    }
+
+    public function actionCancel() {
+        $documento = Cabeceradocumentos::find()
+                ->where([
+                    'idDocPedido' => Yii::$app->request->post('documentId'),
+                    'DocType' => Yii::$app->request->post('doctype')
+                ])
+                ->one();
+        if (!is_null($documento)) {
+            $documento->estado = 6;
+            if ($documento->save(false)) {
+                return $this->correcto($documento->toArray());
+            }
+            return $this->error('Error al actualizar documento', 101);
+        }
+        return $this->error('Documento no encontrado', 201);
+    }
+
+    private function numPedido($numero) {
+        if ($numero < 10) {
+            $codigo = "000{$numero}";
+        } else if ($numero < 100) {
+            $codigo = "00{$numero}";
+        } else if ($numero < 1000) {
+            $codigo = "0{$numero}";
+        } else {
+            $codigo = "{$numero}";
+        }
+        return $codigo;
+    }
+
+    public function actionFinddetalledocumentobydocentry($docEntry) {
+        $oDetalle = Detalledocumentos::find()->where(['DocEntry' => $docEntry])->one();
+        if (is_object($oDetalle)) {
+            return $this->correcto($oDetalle);
+        } else {
+            return $this->error();
+        }
+    }
+
+    public function actionFindcabeceradocumentobydocentry($docEntry) {
+        $oDetalle = Cabeceradocumentos::find()->where(['DocEntry' => $docEntry])->one();
+        if (is_object($oDetalle)) {
+            return $this->correcto($oDetalle);
+        } else {
+            return $this->error();
+        }
+    }
+
+    public function actionFinddetalledocumentobyid($id) {
+        $oDetalle = Detalledocumentos::find()->where(['id' => $id])->one();
+        if (is_object($oDetalle)) {
+            return $this->correcto($oDetalle);
+        } else {
+            return $this->error();
+        }
+    }
+
+    public function actionFindcabeceradocumentobyid($id) {
+        $oDetalle = Cabeceradocumentos::find()->where(['id' => $id])->one();
+        if (is_object($oDetalle)) {
+            return $this->correcto($oDetalle);
+        } else {
+            return $this->error();
+        }
+    }
+
+    public function actionClonedocumentopedido() {
+
+        $IdDocumento = Yii::$app->request->post('doc');
+
+        $oPedido = Cabeceradocumentos::find()->where(['id' => $IdDocumento])->one();
+
+        if (is_object($oPedido)) {
+
+            $cardCode = Yii::$app->request->post('cardcode');
+            $direccion = Yii::$app->request->post('direccion');
+            $listaPrecios = Yii::$app->request->post('listaPrecios');
+            $currency = Yii::$app->request->post('currency');
+            $descuentos = Yii::$app->request->post('descuentos');
+
+            $data = Yii::$app->db->createCommand("CALL pa_clonarDoc(:Doc, :cliente, :address, :listaPrecio, :moneda, :descuentos, :usuario)")
+                    ->bindValue(':Doc', $IdDocumento)
+                    ->bindValue(':cliente', $cardCode)
+                    ->bindValue(':address', $direccion)
+                    ->bindValue(':listaPrecio', $listaPrecios)
+                    ->bindValue(':moneda', $currency)
+                    ->bindValue(':descuentos', $descuentos)
+                    ->bindValue(':usuario', Yii::$app->user->identity->getId())
+                    ->queryAll();
+
+            return $this->correcto($data);
+        }
+        return $this->error();
+    }
+
+    private function unidadEntry($unidad) {
+        $entry = Unidadesmedida::find()->where(['Code' => $unidad])->one();
+        return $entry->getAttribute('AbsEntry');
+    }
+
+    private function usuarioId($usuario) {
+        if ($usuario < 10) {
+            return "000{$usuario}";
+        } else if ($usuario < 100) {
+            return "00{$usuario}";
+        } else if ($usuario < 1000) {
+            return "0{$usuario}";
+        } else {
+            return "{$usuario}";
+        }
+    }
+
+    private function tipoItem($itemCode) {
+        $item = Combos::find()->where(['TreeCode' => $itemCode])->one();
+        if ($item) {
+            return 'iSalesTree';
+        }
+        return 'iNotATree';
+    }
+
+    private function actualizaProductoAlmacen($docType,$reserve,$detalles){
+
+        Yii::error("ACTUALIZA PRODUCTO ALMACEN");
+        Yii::error($docType);
+        Yii::error($reserve);
+        Yii::error(json_encode($detalle));
+        if($docType=='DOP' OR ($docType=='DFA' AND $reserve==1)){
+
+            foreach ($detalles as $lineaPedido) {
+                Yii::error("ACTUALIZA COMMITTED");
+                $sql = 'UPDATE  productosalmacenes set  Committed = Committed + '.$lineaPedido["Quantity"].'  WHERE WareHouseCode = "'.$lineaPedido["WhsCode"].'" AND ItemCode = "'.$lineaPedido["ItemCode"].'" ';
+                Yii::$app->db->createCommand($sql)->execute();
+            }
+
+        }
+        else if($docType=='DOE' OR ($docType=='DFA' AND $reserve==0)){
+            foreach ($detalles as $lineaPedido) {
+                Yii::error("ACTUALIZA INSTOCK");
+                $sql = 'UPDATE  productosalmacenes set  InStock = InStock - '.$lineaPedido["Quantity"].'  WHERE WareHouseCode = "'.$lineaPedido["WhsCode"].'" AND ItemCode = "'.$lineaPedido["ItemCode"].'" ';
+                Yii::$app->db->createCommand($sql)->execute();
+            }
+        }
+
+    }
+
+    private function guardarlog($documento){
+        $aux_env=json_encode($documento);
+        $aux_hoy=Carbon::now('America/La_Paz')->format('Y-m-d H:m:s');
+        $iddocumento=$documento["header"]["idDocPedido"];
+        $detalle=json_encode($documento["detalles"]);
+        $cabecera=json_encode($documento["header"]);
+            $log_aux= "INSERT INTO `log_ingreso`(`proceso`, `envio`, `respuesta`,  `fecha`, `documento`,`cabecera`) VALUES (";
+            $log_aux .=  "'Ingreso Docs','{$aux_env}','{$detalle}','{$aux_hoy}','{$iddocumento}','{$cabecera}');";
+            $db = Yii::$app->db;
+            $db->createCommand($log_aux)->execute();
+    }
+
+    private function registraHistorialDoc($pedido){
+        Yii::error("Inserta HistorialDoc");
+        date_default_timezone_set('America/La_Paz');
+        $historialdocumentos = new Historialdocumentos();
+        $historialdocumentos->id = 0;
+        $historialdocumentos->fecha = date('Y-m-d');
+        $historialdocumentos->fechaHora = date('Y-m-d H:i:s');
+        $historialdocumentos->usuario = $pedido['usuariodataid'];
+        $historialdocumentos->otpp = $pedido['pagos'][0]['otpp'];
+        $historialdocumentos->idDocumento = $pedido["header"]["idDocPedido"];
+        $historialdocumentos->cadenaCabecera = $pedido['cadenaCabezera'];
+        $historialdocumentos->cadenaDetalle = $pedido['cadenaDetalle'];
+        $historialdocumentos->cadenaPago = $pedido['cadenaPago'];
+   
+        if($historialdocumentos->save(false)){
+            Yii::error("Registro Correcto");
+        }
+        else{
+            Yii::error("Error al registrar historial documentos");
+        }
+    }
+
+    private function verificador($cod) {
+        // SIN LIMIT PREVIAMENTE
+        $sql = 'SELECT * FROM cabeceradocumentos WHERE idDocPedido = "' . $cod . '" and estado=3 LIMIT 1;';
+        return Yii::$app->db->createCommand($sql)->queryAll();
+	}
+    private function verificador2($cod,$cliente,$monto,$fecha) {
+        // SIN LIMIT PREVIAMENTE
+        $sql = "SELECT * FROM cabeceradocumentos WHERE idDocPedido = '". $cod . "' and CardCode = '". $cliente . "' and DocTotal = '". $monto . "'  and DocDate = '". $fecha . "' and estado=3 LIMIT 1 ";
+		return Yii::$app->db->createCommand($sql)->queryAll();
+	}
+    private function validaExisteDocumento($pedido){
+        Yii::error("VERIFICADOR DE DOCUMENTO: ");
+        $xcantidadRecibo = $this->verificador($pedido["header"]["idDocPedido"]);
+        Yii::error($xcantidadRecibo);
+        if((count($xcantidadRecibo)>0) and ($pedido["header"]["cancelado"] == 0) ){
+            $xcantidadRecibo2=$this->verificador2($pedido["header"]["idDocPedido"],$pedido["header"]["CardCode"],$pedido["header"]["DocTotal"],$pedido["header"]["DocDate"]);
+            
+            if(count($xcantidadRecibo2)>0){
+    
+                $arr = [
+                    "estadoDoc" =>1,
+                    "anuladoDoc" => 0,
+                    "codigoDoc" =>$pedido["header"]["idDocPedido"],
+                    "numeracionDoc"=>0,
+                    "mensajeDoc"=>"Error! El registro ya existe",
+                    "estadoPago" =>0,
+                    "anuladoPago" =>0,
+                    "codigoPago" =>0,
+                    "numeracionPago"=>0,
+                    "mensajePago"=>""
+                    
+                ];
+            }else{
+                $sqlUltimo="select cast(max((SUBSTRING(idDocPedido, -5))) as UNSIGNED)as ultimo from cabeceradocumentos where idUser=".$pedido["header"]["idUser"]." and DocType='".$pedido["header"]["DocType"]."'";
+                $ultimoNumP=Yii::$app->db->createCommand($sqlUltimo)->queryOne();
+
+                $arr = [
+                    "estadoDoc" =>0,
+                    "anuladoDoc" => 0,
+                    "codigoDoc" =>$pedido["header"]["idDocPedido"],
+                    "numeracionDoc"=>$ultimoNumP['ultimo']+1,
+                    "mensajeDoc"=>"Documento duplicado, enviar nuevamente el registro",
+                    "estadoPago" =>0,
+                    "anuladoPago" =>0,
+                    "codigoPago" =>0,
+                    "numeracionPago"=>0,
+                    "mensajePago"=>""
+                    
+                ];
+            }
+            
+            Yii::error("Respuesta documento Middleware ===> " . json_encode($arr));
+            return $arr;
+        }
+        return ["registro"=>true];
+    }
+}

@@ -1,0 +1,644 @@
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_AlmacenSerie"  AS 
+SELECT
+	 T0."ItemCode",
+	 T0."SysNumber",
+	 T0."DistNumber",
+	 T2."LocCode" 
+FROM "OSRN" T0 
+inner join "ITL1" T1 on T1."SysNumber" = T0."SysNumber" 
+and T1."ItemCode" = T0."ItemCode" 
+inner join "OITL" T2 on T1."LogEntry" = T2."LogEntry" WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_Campanas" AS 
+select
+	 O."CpnNo",
+	 O."Name",
+	 O."StartDate",
+	 O."FinishDate",
+	 O."U_Meta",
+	 O."U_ValorGanado",
+	 O."U_CobroPremio",
+	 T1."BpCode",
+	 T1."BpName",
+	 --T2."ItemCode"
+ (select
+	 sum(X1."DocTotal") 
+	from "OINV" X1 
+	INNER JOIN "INV1" X2 ON X1."DocEntry" = X2."DocEntry" 
+	where X1."CardCode"=T1."BpCode" 
+	and X1."DocDate">=O."StartDate" 
+	and X1."DocDate"<= O."FinishDate" 
+	and X2."ItemCode" in(Select
+	 "ItemCode" 
+		from "CPN2" 
+		where "CPN2"."CpnNo" = O."CpnNo" ) --and X1."DocStatus" NOT IN ('C') 
+ 
+	and X1."CANCELED" NOT IN ('Y') ) as "Acumulado",
+	 (select
+	 sum(X1."U_XM_CampUsa") 
+	from "OINV" X1 
+	where X1."CardCode"=T1."BpCode" 
+	and X1."DocDate">=O."StartDate" 
+	and X1."DocDate"<= O."U_CobroPremio" 
+	and X1."U_XM_Campana"=O."CpnNo" --and X1."DocStatus" NOT IN ('C') 
+ 
+	and X1."CANCELED" NOT IN ('Y') ) as "Usado" 
+from "OCPN" O 
+INNER JOIN "CPN1" T1 ON O."CpnNo" = T1."CpnNo";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_CUOTASFACTURA" AS 
+SELECT
+	 T0."DocNum",
+	 T0."DocType",
+	 T0."CardName",
+	 T1."InsTotal",
+	 TO_DATE(T1."DueDate") AS "DueDate",
+	 T1."InstlmntID",
+	 T1."InstPrcnt",
+	 T1."Paid",
+	 (T1."InsTotal"-T1."Paid") as Saldo 
+FROM OINV T0 
+INNER JOIN INV6 T1 ON T0."DocEntry" = T1."DocEntry" 
+WHERE (T1."InsTotal"-T1."Paid")>0 
+ORDER BY T0."DocNum",
+	 T1."InstlmntID" WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_CUOTASPAGO"  AS 
+SELECT
+	 T0."GroupNum",
+	 T0."PymntGroup",
+	 T1."CTGCode",
+	 T1."IntsNo",
+	 T1."InstMonth",
+	 T1."InstDays",
+	 T1."InstPrcnt" 
+FROM OCTG T0 
+INNER JOIN CTG1 T1 ON T0."GroupNum" = T1."CTGCode" WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_EntregasDetalleSap"  AS select
+	 -- R."DocNum",
+ R."DocEntry",
+	 R."LineNum",
+	 R."ItemCode",
+	 --  R."ItemDescription",
+ --R."PriceAfterVAT",
+ R."Currency",
+	 R."Rate",
+	 -- R."TaxTotal",
+ -- R."UnitPrice",
+ R."Quantity",
+	 R."Price",
+	 R."LineTotal",
+	 R."OpenQty",
+	 R."UomCode",
+	 R."PriceAfVAT",
+	 R."WhsCode",
+	 R."GTotal",
+	 R."LineStatus" --R."Entregado",
+ --R."CANCELED"
+ 
+from "DLN1" R 
+inner join "ODLN" O on (R."DocEntry" = O."DocEntry" 
+	and O."CANCELED" = 'N') 
+where O."DocStatus" = 'O' 
+OR O."InvntSttus"='O' WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_EntregasSap" AS 
+select
+	 "DocEntry",
+	 "DocNum",
+	 "DocDate",
+	 "DocDueDate",
+	 "CardCode",
+	 "CardName",
+	 "DocTotal",
+	 -- "DocCurrency", 
+-- "JournalMemo", 
+-- "PaymentGroupCode", 
+"DocTime",
+	 "Series",
+	 "TaxDate",
+	 "CreateDate",
+	 "UpdateDate",
+	 -- "FinancialPeriod", 
+-- "UpdateTime", 
+"U_LB_NumeroFactura",
+	 "U_LB_NumeroAutorizac",
+	 "U_LB_FechaLimiteEmis",
+	 "U_LB_CodigoControl",
+	 "U_LB_EstadoFactura",
+	 '' as "U_LB_RazonSocial",
+	 '' as "U_LB_TipoFactura",
+	 "ReqName" AS "User",
+	 "DocStatus" AS "Status",
+	 "InvntSttus" as "pedienteEntrega",
+	 "isIns" AS "ReserveInvoice",
+	 "SlpCode" AS "SalesPersonCode",
+	 ROUND ("PaidToDate",
+	 2) AS "PaidToDate",
+	 ROUND (("DocTotal"-"PaidToDate"),
+	 2)AS "Saldo" 
+from "ODLN" 
+where "CANCELED" = 'N' 
+and ("DocStatus" = 'O' 
+	OR "InvntSttus"='O');
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_FacturasDetalleSap"  AS 
+SELECT
+	 "OINV"."DocNum",
+	 "INV1"."DocEntry",
+	 "INV1"."LineNum",
+	 "INV1"."ItemCode",
+	 "INV1"."Dscription" AS "ItemDescription",
+	 "INV1"."PriceAfVAT" AS "PriceAfterVAT",
+	 "INV1"."Currency",
+	 "INV1"."Rate",
+	 "INV1"."TotInclTax" AS "TaxTotal",
+	 "INV1"."PriceBefDi" AS "UnitPrice",
+	 "INV1"."Quantity",
+	 "INV1"."Price",
+	 "INV1"."LineTotal",
+	 "INV1"."OpenQty",
+	 ("INV1"."Quantity"-"INV1"."OpenQty") AS "Entregado",
+	 "OINV"."CANCELED",
+	 "INV1"."WhsCode" 
+FROM "INV1" JOIN "OINV" ON "OINV"."DocEntry" = "INV1"."DocEntry" 
+where "OINV"."DocStatus"='O' 
+OR "OINV"."InvntSttus"='O' WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_FacturasSap"  AS
+ SELECT
+	 "DocEntry",
+	 "DocNum",
+	 TO_DATE("DocDate") as "DocDate",
+	 "CANCELED",
+	 TO_DATE("DocDueDate") AS "DocDueDate",
+	 "CardCode",
+	 "CardName",
+	 "DocCur" AS "DocCurrency",
+	 "JrnlMemo" AS "JournalMemo",
+	 "GroupNum" AS "PaymentGroupCode",
+	 "Series",
+	 TO_DATE("TaxDate") AS "TaxDate",
+	 TO_DATE("CreateDate") AS "CreationDate",
+	 TO_DATE("UpdateDate") AS "UpdateDate",
+	 "FinncPriod" AS "FinancialPeriod",
+	 TO_DATE("UpdateDate") AS "UpdateTime",
+	 "U_LB_NumeroFactura",
+	 "U_LB_NumeroAutorizac",
+	 TO_DATE("U_LB_FechaLimiteEmis") as "U_LB_FechaLimiteEmis",
+	 "U_LB_CodigoControl",
+	 "U_LB_EstadoFactura",
+	 '' as "U_LB_RazonSocial",
+	 '' as "U_LB_TipoFactura",
+	 "ReqName" AS "User",
+	 "DocStatus" AS "Status",
+	 "InvntSttus" as "pedienteEntrega",
+	 "DocTime",
+	 "ImportEnt" AS "NumPedido",
+	 "isIns" AS "ReserveInvoice",
+	 "SlpCode" AS "SalesPersonCode",
+	 "PaidSys",
+	 "DocTotal",
+	 ROUND ("PaidToDate",
+	 2) AS "PaidToDate",
+	 ROUND (("DocTotal"-"PaidToDate"),
+	 2)AS "Saldo" 
+FROM "OINV" 
+where "DocStatus"='O' 
+OR "InvntSttus"='O';
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_LotesProductos" AS 
+sELECT
+	 "ItemCode",
+	 "BatchNum",
+	 "WhsCode",
+	 Case when "IsCommited" >= 0 
+then ("Quantity"-"IsCommited") 
+else "Quantity" 
+end "Quantity" ,
+	 TO_DATE(TO_VARCHAR ("InDate",
+	 'YYYY-MM-DD')) as "Ingreso",
+	 TO_DATE(TO_VARCHAR ("ExpDate",
+	 'YYYY-MM-DD')) as "Expira",
+	 "BaseType",
+	 "BaseEntry",
+	 "BaseNum",
+	 "BaseLinNum",
+	 "Transfered",
+	 "DataSource" 
+from "SBOCOMPANEX_VENTAS"."OIBT" 
+WHERE ((CAST ("Quantity" AS INTEGER)-CAST ("IsCommited" AS INTEGER))>0 
+	OR "IsCommited" is null ) WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_NotasCreditoDetalleSap"  AS 
+SELECT
+	 O."DocNum",
+	 R."DocEntry",
+	 R."LineNum",
+	 R."ItemCode",
+	 R."Dscription" AS "ItemDescription",
+	 R."PriceAfVAT" AS "PriceAfterVAT",
+	 R."Currency",
+	 R."Rate",
+	 R."TotInclTax" AS "TaxTotal",
+	 R."PriceBefDi" AS "UnitPrice",
+	 R."Quantity",
+	 R."Price",
+	 R."LineTotal",
+	 R."OpenQty",
+	 (R."Quantity"-R."OpenQty") AS "Entregado" --R."CANCELED"
+ 
+FROM "RIN1" R JOIN "ORIN" O ON O."DocEntry" = R."DocEntry" WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_NotasCreditoSap" AS 
+SELECT
+	 "DocEntry",
+	 "DocNum",
+	 TO_DATE("DocDate") as "DocDate",
+	 "CANCELED",
+	 TO_DATE("DocDueDate") AS "DocDueDate",
+	 "CardCode",
+	 "CardName",
+	 "DocCur" AS "DocCurrency",
+	 "JrnlMemo" AS "JournalMemo",
+	 "GroupNum" AS "PaymentGroupCode",
+	 "Series",
+	 TO_DATE("TaxDate") AS "TaxDate",
+	 TO_DATE("CreateDate") AS "CreationDate",
+	 TO_DATE("UpdateDate") AS "UpdateDate",
+	 "FinncPriod" AS "FinancialPeriod",
+	 TO_DATE("UpdateDate") AS "UpdateTime",
+	 "U_LB_NumeroFactura",
+	 "U_LB_NumeroAutorizac",
+	 "U_LB_FechaLimiteEmis",
+	 "U_LB_CodigoControl",
+	 "U_LB_EstadoFactura",
+	 '' as "U_LB_RazonSocial",
+	 '' as "U_LB_TipoFactura",
+	 "ReqName" AS "User",
+	 "DocStatus" AS "Status",
+	 "DocTime",
+	 "ImportEnt" AS "NumPedido",
+	 "isIns" AS "ReserveInvoice",
+	 "SlpCode" AS "SalesPersonCode",
+	 "PaidSys",
+	 "DocTotal",
+	 ROUND ("PaidToDate",
+	 2) AS "PaidToDate",
+	 ROUND (("DocTotal"-"PaidToDate"),
+	 2)AS "Saldo" 
+FROM "ORIN";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_OfertasDetallesSap"  AS 
+select
+	 R."DocEntry",
+	 R."LineNum",
+	 R."ItemCode",
+	 R."Dscription" as "ItemDescription",
+	 R."Price",
+	 R."Quantity",
+	 R."Currency",
+	 R."Rate",
+	 R."LineTotal",
+	 R."OpenQty",
+	 R."UomCode",
+	 R."PriceAfVAT",
+	 R."WhsCode",
+	 R."GTotal",
+	 R."LineStatus" 
+from "QUT1" R 
+inner join "OQUT" O on (R."DocEntry" = O."DocEntry") 
+where O."DocStatus"='O' 
+OR O."InvntSttus"='O' WITH READ ONLY;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_OfertasSap"  AS 
+select
+	 "DocEntry",
+	 "DocNum",
+	 "DocDate",
+	 "DocDueDate",
+	 "CardCode",
+	 "CardName",
+	 "DocTotal",
+	 -- "DocCurrency", 
+-- "JournalMemo", 
+-- "PaymentGroupCode", 
+"DocTime",
+	 "Series",
+	 "TaxDate",
+	 -- "CreationDate", 
+"UpdateDate",
+	 -- "FinancialPeriod", 
+-- "UpdateTime", 
+"U_LB_NumeroFactura",
+	 "U_LB_NumeroAutorizac",
+	 "U_LB_FechaLimiteEmis",
+	 "U_LB_CodigoControl",
+	 "U_LB_EstadoFactura",
+	 '' as "U_LB_RazonSocial",
+	 '' as "U_LB_TipoFactura",
+	 "ReqName" AS "User",
+	 "DocStatus" AS "Status",
+	 "InvntSttus" as "pedienteEntrega",
+	 "isIns" AS "ReserveInvoice",
+	 "SlpCode" AS "SalesPersonCode",
+	 ROUND ("PaidToDate",
+	 2) AS "PaidToDate",
+	 ROUND (("DocTotal"-"PaidToDate"),
+	 2)AS "Saldo" 
+FROM "OQUT" 
+where "CANCELED" = 'N' 
+and ("DocStatus" = 'O' 
+	OR "InvntSttus"='O');
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_PagosCuenta"  AS SELECT
+	 "DocEntry",
+	 "DocNum" ,
+	 "DocType" ,
+	 "DocDate" ,
+	 "DocDueDate" ,
+	 "CardCode" ,
+	 "CardName",
+	 "CashAcct" ,
+	 "CashSum" ,
+	 "CashSumFC" ,
+	 "CreditSum" ,
+	 "CredSumFC" ,
+	 "CheckAcct" ,
+	 "CheckSum" ,
+	 "CheckSumFC" ,
+	 "TrsfrAcct" ,
+	 "TrsfrSum" ,
+	 "TrsfrSumFC" ,
+	 "TrsfrDate" ,
+	 "DocCurr" ,
+	 "DocRate" ,
+	 "DocTotal" ,
+	 "DocTotalFC" ,
+	 "Ref1",
+	 "JrnlMemo" ,
+	 "TransId" 
+from "ORCT" 
+where "PayNoDoc"='Y';
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_PedidoSap"  AS 
+SELECT
+	 DISTINCT T6."DocEntry",
+	 T6."DocNum",
+	 TO_DATE(T6."DocDate") as "DocDate",
+	 T6."CANCELED",
+	 TO_DATE(T6."DocDueDate") AS "DocDueDate",
+	 T6."CardCode",
+	 T6."CardName",
+	 T6."DocCur" AS "DocCurrency",
+	 T6."JrnlMemo" AS "JournalMemo",
+	 T6."GroupNum" AS "PaymentGroupCode",
+	 T6."Series",
+	 TO_DATE(T6."TaxDate") AS "TaxDate",
+	 TO_DATE(T6."CreateDate") AS "CreationDate",
+	 TO_DATE(T6."UpdateDate") AS "UpdateDate",
+	 T6."FinncPriod" AS "FinancialPeriod",
+	 TO_DATE(T6."UpdateDate") AS "UpdateTime",
+	 IFNULL (T6."U_LB_NumeroFactura",
+	 '0') AS "U_LB_NumeroFactura",
+	 IFNULL (T6."U_LB_NumeroAutorizac",
+	 '0') AS "U_LB_NumeroAutorizac",
+	 IFNULL (T6."U_LB_FechaLimiteEmis",
+	 '0') AS "U_LB_FechaLimiteEmis",
+	 IFNULL (T6."U_LB_CodigoControl",
+	 '0') AS "U_LB_CodigoControl",
+	 T6."U_LB_EstadoFactura",
+	 '' as "U_LB_RazonSocial",
+	 '' as "U_LB_TipoFactura",
+	 IFNULL (T6."ReqName",
+	 '0') AS "User",
+	 T6."DocStatus" AS "Status",
+	 T6."DocTime",
+	 IFNULL (T6."ImportEnt",
+	 '0') AS "NumPedido",
+	 T6."isIns" AS "ReserveInvoice",
+	 IFNULL (T6."SlpCode",
+	 '0') AS "SalesPersonCode",
+	 T6."PaidSys",
+	 T6."DocTotal",
+	 T6."InvntSttus" as "pedienteEntrega",
+	 IFNULL (T3."Address",
+	 '0') AS "DireccionEntrega",
+	 --IFNULL (T3."U_Zona",
+ ('0') AS "U_Zona",
+	 IFNULL (T3."Territory",
+	 '0') AS "U_Territorio",
+	 IFNULL (T3."U_XM_Latitud",
+	 '0') AS "U_Latitud",
+	 IFNULL (T3."U_XM_Longitud",
+	 '0') AS "U_Longitud",
+	 IFNULL (PK."SlpCode",
+	 '0') as "Repartidor",
+	 --IFNULL (PK."Name",'0') as "Facturador",
+ '0' as "Facturador",
+	 '0' as "AlmacenFacturador",
+	 '' AS "AUX1",
+	 '' AS "Address2",
+	 L1."lineasAbiertas" 
+FROM "ORDR" T6 
+LEFT JOIN "OCRD" T3 ON T3."CardCode" = T6."CardCode" 
+INNER JOIN "RDR1" T5 ON T5."DocEntry" = T6."DocEntry" 
+LEFT JOIN "PKL1" T1 ON T1."OrderEntry" = T5."DocEntry" 
+AND T1."OrderLine" = T5."LineNum" 
+LEFT JOIN "OPKL" T0 ON T0."AbsEntry" = T1."AbsEntry" 
+left join ( Select
+	 count("LineStatus")as "lineasAbiertas",
+	 "DocEntry" 
+	from "RDR1" 
+	where "LineStatus"='O' 
+	group by "DocEntry" )L1 ON T6."DocEntry" = L1."DocEntry" 
+left JOIN( SELECT
+	 DISTINCT T1."OrderEntry" ,
+	 T0."Name",
+	 T2."SlpCode" 
+	FROM OPKL T0 
+	INNER JOIN PKL1 T1 ON T0."AbsEntry" = T1."AbsEntry" 
+	INNER JOIN "OSLP" T2 ON T2."SlpName" = T0."Name" ) AS "PK" on T6."DocEntry" = PK."OrderEntry" 
+where (T6."DocDueDate">=CURRENT_DATE ) 
+and L1."lineasAbiertas">0 
+and (T6."DocStatus"='O' 
+	OR T6."InvntSttus"='O') 
+ORDER BY T6."DocNum";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_pedidosDetalleSap"  AS 
+SELECT
+	 "ORDR"."DocNum",
+	 T5."DocEntry",
+	 T5."LineNum",
+	 T5."ItemCode",
+	 T5."Dscription" AS "ItemDescription",
+	 T5."PriceAfVAT" AS "PriceAfterVAT",
+	 T5."Currency",
+	 T5."TotInclTax" AS "TaxTotal",
+	 T5."PriceBefDi" AS "UnitPrice",
+	 T5."Quantity",
+	 T5."GPBefDisc" as "Price",
+	 T5."LineTotal",
+	 T5."GTotal" As "LineTotalPay",
+	 IFNULL (T5."DiscPrcnt",
+	 '0') AS "DiscPrcnt",
+	 T5."OpenQty",
+	 (T5."Quantity"-T5."OpenQty") AS "Entregado",
+	 "ORDR"."U_xMOB_Usuario",
+	 "ORDR"."CANCELED" ,
+	 T5."WhsCode",
+	 T5."OcrCode",
+	 T5."OcrCode2",
+	 T5."LineStatus",
+	 T5."InvntSttus",
+	 T5."OpenSum" ,
+	 T5."UomCode" ,
+	 "UGP1"."BaseQty",
+	 T5."VatPrcnt" as "Rate",
+	 T5."TaxCode" as "Impuesto",
+	 T5."U_XM_Bonif" as "Bonif",
+	 T5."U_XM_CodeBonif" as "CodeBonif",
+	 T5."U_XM_ListaPrecios" as "ListaPrecio",
+	 IFNULL ((select
+	 "BaseSum" 
+		from "RDR4" 
+		where "RDR4"."DocEntry"= T5."DocEntry" 
+		and "RDR4"."LineNum"=T5."LineNum" 
+		and "RDR4"."ExpnsCode"=1 ),
+	 0) as "ICEE",
+	 IFNULL ((select
+	 "BaseSum" 
+		from "RDR4" 
+		where "RDR4"."DocEntry"= T5."DocEntry" 
+		and "RDR4"."LineNum"=T5."LineNum" 
+		and "RDR4"."ExpnsCode"=2 ),
+	 0) as "ICEP",
+	 IFNULL (T0."AbsEntry",
+	 '0') AS "NroPicking",
+	 IFNULL (T4."BatchNum",
+	 '0') as "Lote",
+	 IFNULL (T4."Quantity",
+	 '0') As "Cantidad Lote",
+	 IFNULL (T1."RelQtty",
+	 '0') as "PickingLiberado",
+	 IFNULL (T1."PickQtty",
+	 '0') AS "U_XMB_CANTREP",
+	 IFNULL (T0."U_Placa",
+	 '0') as "Placa Vehiculo",
+	 IFNULL (T0."OwnerCode",
+	 '0') as "IDAlmacenero",
+	 IFNULL (T7."U_NAME",
+	 '0') as "EncargadoAlmacen" 
+FROM "RDR1" T5 JOIN "ORDR" ON "ORDR"."DocEntry" = T5."DocEntry" 
+LEFT JOIN "IBT1" T4 ON T4."BaseEntry" = T5."DocEntry" 
+AND T4."BaseLinNum" = T5."LineNum" 
+AND T4."ItemCode" = T5."ItemCode"-- AND T4."BaseType" = 15
+ 
+left join "OITM" ON T5."ItemCode"="OITM"."ItemCode" 
+left join "OUOM" ON T5."UomCode"="OUOM"."UomCode" 
+left join "UGP1" ON "OITM"."UgpEntry"="UGP1"."UgpEntry" 
+and "OUOM"."UomEntry"="UGP1"."UomEntry" 
+LEFT JOIN "PKL1" T1 ON T1."OrderEntry" = T5."DocEntry" 
+AND T1."OrderLine" = T5."LineNum" 
+LEFT JOIN "OPKL" T0 ON T0."AbsEntry" = T1."AbsEntry" 
+LEFT JOIN "OUSR" T7 ON T7."USERID" = T0."OwnerCode" 
+where ("ORDR"."DocDueDate">=CURRENT_DATE) 
+and ("ORDR"."DocStatus"='O' 
+	OR "ORDR"."InvntSttus"='O') 
+ORDER BY "ORDR"."DocNum";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_ProductosAlmacenesSap"  AS 
+select
+	 "ItemCode",
+	 "WhsCode",
+	 "OnHand",
+	 "IsCommited",
+	 "Locked",
+	 "OnOrder" 
+from "QA_COMPANEX"."OITW" 
+order by "ItemCode";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_Productosprecios" AS 
+(SELECT
+	 "ITM1"."ItemCode",
+	 "ITM1"."PriceList",
+	 "ITM1"."UomEntry",
+	 "ITM1"."Price",
+	 "ITM1"."Currency",
+	 "ITM1"."AddPrice1",
+	 "ITM1"."Currency1",
+	 "ITM1"."AddPrice2",
+	 "ITM1"."Currency2",
+	 "OITM"."UgpEntry",
+	 "OUOM"."UomCode",
+	 "OUOM"."UomName",
+	 "UGP1"."BaseQty",
+	 "OPLN"."ListName" 
+	from "ITM1" 
+	left join "OITM" ON "ITM1"."ItemCode"="OITM"."ItemCode" 
+	left join "OUOM" ON "ITM1"."UomEntry"="OUOM"."UomEntry" 
+	left join "UGP1" ON "OITM"."UgpEntry"="UGP1"."UgpEntry" 
+	and "ITM1"."UomEntry"="UGP1"."UomEntry" 
+	left join "OPLN" ON "ITM1"."PriceList"="OPLN"."ListNum" ) 
+UNION ALL (SELECT
+	 "ITM9"."ItemCode",
+	 "ITM9"."PriceList",
+	 "ITM9"."UomEntry",
+	 "ITM9"."Price",
+	 "ITM9"."Currency",
+	 "ITM9"."AddPrice1",
+	 "ITM9"."Currency1",
+	 "ITM9"."AddPrice2",
+	 "ITM9"."Currency2",
+	 "OITM"."UgpEntry",
+	 "OUOM"."UomCode",
+	 "OUOM"."UomName",
+	 "UGP1"."BaseQty",
+	 "OPLN"."ListName" 
+	FROM ITM9 
+	left join "OITM" ON "ITM9"."ItemCode"="OITM"."ItemCode" 
+	left join "OUOM" ON "ITM9"."UomEntry"="OUOM"."UomEntry" 
+	left join "UGP1" ON "OITM"."UgpEntry"="UGP1"."UgpEntry" 
+	and "ITM9"."UomEntry"="UGP1"."UomEntry" 
+	left join "OPLN" ON "ITM9"."PriceList"="OPLN"."ListNum" ) 
+order by 1;
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_ProductosPreciosSap" AS 
+select
+	 "ItemCode",
+	 "PriceList",
+	 "UomEntry",
+	 "Price",
+	 "Currency" 
+from "QA_COMPANEX"."ITM1" 
+order by "ItemCode";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_ProductosSap"  AS 
+select
+	 "ItemCode",
+	 "ItemName",
+	 "ItmsGrpCod",
+	 "FrgnName",
+	 "CstGrpCode",
+	 "CodeBars",
+	 "PrchseItem",
+	 "SellItem",
+	 "InvntItem",
+	 "UserText",
+	 "OnHand",
+	 "IsCommited",
+	 "OnOrder",
+	 "ManSerNum",
+	 "ManBtchNum",
+	 "SalUnitMsr",
+	 "SLength1",
+	 "SWidth1",
+	 "BHeight1",
+	 "SVolume",
+	 "BuyUnitMsr",
+	 "DfltWH",
+	 "ByWh",
+	 "EnAstSeri",
+	 "Series",
+	 "UgpEntry",
+	 "SUoMEntry",
+	 "FirmCode",
+	 "NoDiscount" 
+from "QA_COMPANEX"."OITM" 
+order by "ItemCode";
+CREATE VIEW "SBOCOMPANEX_VENTAS"."EXX_XM_SeriesUsadas"  AS 
+SELECT
+	 T0."ItemCode",
+	 T0."DistNumber",
+	 T0."MnfSerial",
+	 T0."InDate",
+	 T0."Location",
+	 T0."Notes" 
+FROM "OSRN" T0 
+inner join "ITL1" T1 on T1."SysNumber" = T0."SysNumber" 
+and T1."ItemCode" = T0."ItemCode" 
+inner join "OITL" T2 on T1."LogEntry" = T2."LogEntry" 
+where T2."DocType" in (15,
+	 13) WITH READ ONLY;

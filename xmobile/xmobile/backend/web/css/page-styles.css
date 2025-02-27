@@ -1,0 +1,1202 @@
+/*@media screen and (max-width: 1200px) {
+   body{
+		font-size: 70%;
+	}
+}
+@media screen and (min-width: 1200px) {
+   body{
+		font-size: 100%;		
+	}		
+}
+body{
+	margin:0px;
+	padding:0px;
+	
+		
+}
+*/
+@-webkit-keyframes logo {
+		0%  { -webkit-transform:translateX(0px);
+					opacity:0;}
+		20% { -webkit-transform:translateX(50px);
+					opacity:1;}
+		40% {	-webkit-transform:translateX(-20px);
+					-webkit-transform:translateY(20px);}
+		60% {	-webkit-transform:translateX(120px);}
+		80% {	-webkit-transform:translateX(150px);
+					-webkit-transform:translateY(-10px);}
+		90% {	-webkit-transform:translateX(-20px);
+					opacity:1;}
+		100%{ -webkit-transform:translateX(50px); 
+					opacity:0;
+		}
+}
+@-webkit-keyframes click {
+		0%   { color:rgb(255, 252, 250);}
+		40%   { color:#C30;}
+		50%  { color:#0082c6;
+						-webkit-box-shadow:0px 0px 10px #39F;}
+		100% {color:#0082c6;}
+}
+
+@-webkit-keyframes pendientes {
+		0%   { color:#e43734;}
+		50%  { color:#FF0;
+						text-shadow:0px 0px 5px #000;
+			}
+		100% { color:#e43734;}
+}
+@-webkit-keyframes activo {
+		0%   { color:#F00;}
+		50%  { background:#3CF;
+						color:#FFF;
+				 }
+		100% {color:#F00;}
+}
+
+.hacer_click{
+	cursor:pointer;
+	-webkit-animation:click 3s infinite;
+}
+
+.egresos_pendientes{
+	cursor:pointer;
+	-webkit-animation:pendientes 2s infinite;
+}
+
+/************************************************************************************************************/
+/**********************************************  CSS-ALL  ***************************************************/
+.error{
+    background-color: #FFF;
+    border-radius: 4px 4px 4px 4px;
+   	color: #BC1010;
+	border:1px solid #BC1010;
+	margin-left:10px;
+    padding: 5px 20px;
+    position: fixed;
+	font:14px webfont;
+}
+
+.error:before{
+    border-color: transparent #BC1010 transparent transparent;
+    border-style: solid;
+    border-width: 6px 8px;
+    content: "";
+    display: block;
+    height: 0;
+    left: -16px;
+    position:absolute;
+    top: 8px;
+    width: 0;
+}
+
+.error2{
+    background-color: #FFF;
+    border-radius: 4px 4px 4px 4px;
+    color: #BC1010;
+		border:1px solid #BC1010;
+    padding: 5px 20px;
+    position: fixed;
+		font:11px webfont;
+}
+.error3{
+    background-color: #FFF;
+    border-radius: 4px 4px 4px 4px;
+    color: #BC1010;
+		border:1px solid #BC1010;
+    padding: 5px 20px;
+    position:relative;
+		font:11px webfont;
+}
+.error2:before, .error3:before{
+    border-color:  transparent transparent #BC1010 transparent;
+    border-style: solid;
+    border-width: 6px 10px;
+    content: "";
+    display: block;
+    height: 0;
+    left: 5px;
+    position:absolute;
+    top: -12px;
+    width: 0;
+}
+
+
+.egresos_on{
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 4px 4px 4px 4px;
+    color: #FFF;
+		border:2px solid #000;
+    font-weight: bold;
+		margin-left:10px;
+    padding: 5px 20px;
+    position: fixed;
+		display:inline;
+		width:200px;
+}
+
+.egresos_on:before{
+    border-color: transparent #000 transparent transparent;
+    border-style: solid;
+    border-width: 6px 8px;
+    content: "";
+    display: block;
+    height: 0;
+    left: -16px;
+    position:absolute;
+    top: 8px;
+    width: 0;
+}
+.formulario{
+	border:1px solid #000; 
+	-webkit-box-shadow:0px 0px 40px #333333;
+	-webkit-transition:-webkit-transform 1s,-webkit-box-shadow 1s;
+}
+
+.formulario:hover, .formulario:focus{
+	-webkit-box-shadow:0px 0px 80px #339966;
+	-webkit-transition:-webkit-transform 1s,-webkit-box-shadow 1s;
+}
+
+img, video, object { max-width:100%;}
+
+.encprint{
+	background: url(images/ui-bg_highlight-hard_95_cccccc_1x100.png);	
+}
+.enc1{
+	background-color:rgba(204,204,204,0.5);
+	background:url(../../Images/fondo_encabezado.jpg);	
+}
+.enc2{
+	background-color:#f5f5f5;
+}
+.enc3{
+	background-color:rgba(204,204,204,1);	
+}
+.encred{
+	background: url(images/activo.jpg) repeat-x;
+	color: #ffffff;
+}
+.enc_list{
+	color:#3fa9f5;
+	background-color:rgba(255,255,255,0.8);
+}
+.enc_inicio{
+	color:#3FA9F5;
+}
+.enc_n1{
+	background:#00A99D;
+	color:#FFF;
+	text-shadow:2px 2px 5px black;
+}
+.enc_n2{
+	background:#C1272D;
+	color:#FFF;
+	text-shadow:2px 2px 5px black;
+}
+.enc_n3{
+	background:#f7f7f7;
+}
+.titulo_azul{
+	color:#00C;
+}
+.enc_up{
+	background:url(images/enc_tablas_up.jpg);
+}
+.enc_down{
+	background:url(images/enc_tablas_down.jpg);
+}
+.tr_separador{
+	background-color:#F00;
+}
+.enc-error{
+	background-color:rgba(204,51,51,0.5);		
+}
+.alg-center{
+	text-align:center;
+}
+.alg-izq{
+	text-align:left;
+}
+.alg-der{
+	text-align:right;
+}
+.cliente_si{
+	color:#090;
+	background:rgba(0,153,51,0.1);
+}
+/*************************************** FONTS *******************************************/
+/*****************************************************************************************/
+.font8{
+	font:8px webfont;
+}
+.font9{
+	font:9px webfont;
+}
+.font10{
+	font:10px webfont;
+}
+.font11{
+	font:11px webfont;
+}
+.font13{
+	font:13px webfont;
+}
+.font15{
+	font:15px webfont;
+}
+.font17{
+	font:17px webfont;
+}
+.font19{
+	font:19px webfont;
+}
+.font10h{
+	font:10px handel;
+}
+.font12h{
+	font:12px handel;
+}
+.font14h{
+	font:14px handel;
+}
+.font16h{
+	font:16px handel;
+}
+.font18h{
+	font:18px handel;
+}
+.font20h{
+	font:20px handel;
+}
+.font22h{
+	font:22px handel;
+}
+.font24h{
+	font:24px handel;
+}
+.font26h{
+	font:26px handel;
+}
+.font28h{
+	font:28px handel;
+}
+.font30h{
+	font:30px handel;
+}
+.font40h{
+	font:40px handel;
+}
+
+.titulo_pagina{
+	font:35px handel;
+	color:#FFF;
+	text-transform:uppercase;
+	text-wrap:suppress;
+	text-shadow:0px 0px 10px #28486C;	
+}
+
+.f039{
+	color:#F00;
+}
+.fc30{
+	color:#C30;
+}
+.ffff{
+	color:#FFF;
+}
+.center{
+	text-align:center;
+}
+.fsh_fff{
+	text-shadow:1px 1px 3px #FFF;
+}
+
+/************************************************************************************************************/
+/**********************************************  CSS-BUTTONS  ***********************************************/
+.button{
+	height:40px;
+	padding:5px 0px;
+}
+
+/************************************************************************************************************/
+/**********************************************  CSS-HEADER  ************************************************/
+#logotipo{
+	-webkit-animation: logo 30s infinite;
+}
+#header{
+	top:0px;
+	width:100%;
+	margin-bottom:0px;
+}
+
+#menus{
+	background:url(images/menu.jpg) repeat-x;
+}
+
+#titulos{
+	height:20px;
+}
+
+
+
+.nav-buttons2{
+	height:33px;
+	border: 1px solid #360;
+	padding-left:5px;
+	padding-right:5px;
+	font: 10px webfont;
+	cursor:pointer;
+	vertical-align:middle;
+	background:#690 url(../../Images/inactivo2.jpg) repeat-x;
+}
+
+.nav-buttons td, .nav-current td{
+	padding-left:8px;
+	padding-right:8px;
+}
+
+.nav-buttons img, .nav-current img, .nav-buttons2 img{
+	width:20px;
+	height:20px;
+	-webkit-transition:all 1s;
+}
+
+
+
+
+.nav-top
+{
+	font:18px handel;
+	color:#333;
+	height:25px;
+}
+
+.nav img{
+	-webkit-transition:all 1s;
+}
+.nav:hover img{
+	width:60px;
+	height:60px;		
+}
+.nav:hover button{
+	-webkit-transition:image 1s;
+}
+.nav-td
+{
+	font:16px handel;
+	width:100%;
+	height:90px;
+	text-align:center;
+	vertical-align:middle;
+	display:block;
+	text-decoration:none;
+	background-color:rgba(255,255,255,0);
+	-webkit-transition:color 1s,background 1s;
+	color:#2779aa;
+	text-shadow: 0px 0px 10px #fff;
+}
+
+.nav-td:hover, .nav-td:focus{
+	color: #FFF;
+	background:url(images/menu_activo.jpg) 50% repeat-x;	
+	cursor:pointer;
+	text-shadow: 0px 0px 2px #000000;
+	-webkit-transition: color 1s,background 1s;
+}
+.div-margin{
+	margin-top:210px;
+	width:100%;
+	clear:both;
+}
+
+/********************** PIE PAGINA - CSS **********************/
+.pie_pagina{
+	width:100%;
+	background-color:#FFF;
+	margin-top:100px;
+	clear:both;
+}
+.pie_menus{
+	height:40px;
+	background:url(images/menu2.jpg);
+	font:10px handel;
+}
+.pie_menus td{
+	background:url(images/separador_menu.png) no-repeat;
+	background-size:2px 40px;
+}
+.pie_menus img{
+	height:20px;
+	width:20px;
+}
+.pie_menus td{
+	text-align:center;
+}
+
+.pie_titulos{
+	height:50px;
+	background:url(images/fondo_pie.jpg);
+	font:12px "Arial Black", Gadget, sans-serif;
+	color:#000;
+}
+
+
+
+
+.pie_titulos a, .pie_titulos td{
+	text-decoration:none;
+	color:#FFF;
+}
+
+.pie_menus a{
+	text-decoration:none;
+	 color:#2779aa;
+}
+
+.pie_menus a:hover{
+	text-decoration:underline;
+}
+
+.pie_tfont{
+	font:"Century Gothic" 15px;
+	color:#FFF;
+	text-shadow:2px 2px 2px #333333;
+}
+
+.pie_footer{
+	background:url(images/pie_footer.jpg);
+	height:20px;
+	font:16px handel;
+}
+
+/************************************************************************************************************/
+/**********************************************  CSS-MENSAJES************************************************/
+#display-mensajes
+{
+	width:450px;
+	height:400px;
+	position:fixed;
+	bottom:50px;
+	right:0px;
+	border:1px solid #ccc;
+	border-radius:40px 0px 0px 40px;
+	-webkit-border-radius:40px 0px 0px 40px;
+	background:#a56969 url(images/mensajes.png);
+	background-size:495px 470px;
+	color:#000;
+	padding:20px 20px 20px 20px;	
+	box-shadow: 3px 3px 10px black;
+	-webkit-box-shadow: 0px 0px 60px black;
+	z-index:10;	
+	opacity:1;
+	transition: opacity 1s, box-shadow 1s, transform 1s, background 1s;
+	-webkit-transition: opacity 1s, -webkit-box-shadow 1s, -webkit-transform 1s, background 1s, color 1s;
+	transform:scale(1,1);
+	-webkit-transform:scale(1,1);
+}
+#display-mensajes:hover{
+	opacity:1;
+}
+#mensajes_no{
+	display:none;
+}
+#lista_mensajes{
+	background:rgba(255,255,255,0.5);
+	margin-top:170px;
+}
+/**************************************  CSS INVENTARIOS  ***************************************************************************/
+/**************************************  CSS INVENTARIOS  *************************************************/
+/**************************************  CSS INVENTARIOS  ***************************************************************************/
+#inv-izq{
+	width:49%;
+	float:left;
+}
+#accordion-resizer {
+	width:100%;
+	padding:10px;
+	margin-bottom:30px;
+}
+#inv-der{
+	 width: 49%;  float:right; margin:0px;
+	 overflow:auto;
+	 font-size:70% 
+}
+.div-clear{
+	clear:both;
+	height:0px;
+	width:0px;
+}
+#productos{
+	margin:10px;
+	padding:10px;
+}
+.c-title{
+	float:left;	
+}
+.rbl{
+	border-radius: 0px 0px 0px 10px;
+	-webkit-border-radius: 0px 0px 0px 10px;
+	-moz-border-radius: 0px 0px 0px 10px;
+	-o-border-radius: 0px 0px 0px 10px;
+}
+.c-buttons{
+	float:right;
+	background-color: rgba(0,0,0,0.4);
+	padding:5px;	
+}
+.black{
+	color:#FFF;
+	background-color:#333;
+}
+.red{
+	color:#FFF;
+	background-color:#c61819;
+}
+
+.yellow{
+	color:#000;
+	background-color: #fdc82a;
+}
+
+.green{
+	color:#FFF;
+	background-color:#8aba28;	
+}
+.pd_general{
+	color:#FFF;
+	background-color:#F60;
+}
+.pd_unico{
+	color:#FFF;
+	background-color:#09F;
+	cursor:pointer;
+}
+.pd_unico2{
+	color:#FFF;
+	background-color:#0080C0;
+}
+/**************************************  CSS INVENTARIOS-FORMULARIOS PARA LOS TEXTOSSSSS****************************************************/
+label{ display:block; }
+input.text { margin-bottom:12px; width:95%; padding: .4em; }
+fieldset { padding:0; border:0; margin-top:25px; }
+/*textarea{ width:95%; padding:.4em; margin-bottom:12px; text-transform:uppercase; }*/
+textarea{ width:95%; padding:.0em; margin-bottom:5px; text-transform:uppercase; height:100px;}
+
+.validateTips { border: 1px solid transparent; padding: 0.3em; }
+#category-div,#cat-mensaje,#prod-mensaje,#mod-category,#p-confirm{ font-size: 80%;}
+.ui-dialog .ui-state-error { padding: .3em; }
+.validateTips { border: 1px solid transparent; padding: 0.3em; }
+/**************************************  FORMULARIOS PRODUCTOS ****************************************************/
+.titulo{text-align:center; padding:5px; font-size:20px;}
+#product-div img{ max-height:240px; max-width:100%;}
+#pbut,#pbut2{display:none;}
+#pseries{ display:none; overflow:auto; height:240px;}
+.form-input{
+	font-size:19px;
+	width:98%;
+	border:1px solid #999;
+}
+
+.width100{
+	width:100%;
+}
+.width90{
+	width:90%;
+}
+.width80{
+	width:80%;
+}
+.plabel{
+	font-size:12px;
+}
+
+/**************************************  MOSTRAR PRODUCTOS ****************************************************/
+.display_productos{
+	width:100%;
+	border-collapse:collapse;
+}
+.no_existe{
+
+	font-family:handel;
+	color:#999;
+}
+#all_description{
+	margin-left:15px;
+}
+#desc_productos{
+	display:none;
+	font: 15px handel;
+	color:#666;	
+}
+#desc_categorias{
+	font: 15px handel;
+	color:#666;	
+}
+#all_description{
+	margin-top:40px;
+	padding-bottom:20px;
+	display:none;
+	border-radius: 20px 0px 0px 20px;
+	-webkit-border-radius: 20px 0px 0px 20px;
+	-moz-border-radius: 20px 0px 0px 20px;
+	-o-border-radius: 20px 0px 0px 20px;
+	-ms-border-radius: 20px 0px 0px 20px;
+	opacity:1;
+	transition: opacity 1s, box-shadow 1s, transform 1s, background 1s;
+	-webkit-transition: opacity 1s, -webkit-box-shadow 1s, -webkit-transform 1s, background 1s, color 1s;
+	-moz-transition: opacity 1s, -moz-box-shadow 1s, -moz-transform 1s, background 1s, color 1s;
+	-o-transition: opacity 1s, -o-box-shadow 1s, -o-transform 1s, background 1s, color 1s;
+}
+#all_description:hover{	
+	box-shadow:  0px 0px 30px inset;	
+	-webkit-box-shadow: 0px 0px 30px inset;
+	-ms-box-shadow: 0px 0px 30px inset;
+	-moz-box-shadow: 0px 0px 30px inset;
+	-o-box-shadow: 0px 0px 30px inset;	
+	transition: opacity 1s, box-shadow 1s, transform 1s, background 1s;
+	-webkit-transition: opacity 1s, -webkit-box-shadow 1s, -webkit-transform 1s, background 1s, color 1s;
+	-moz-transition:opacity 1s, -moz-box-shadow 1s, -moz-transform 1s, background 1s, color 1s;
+	-ms-transition:opacity 1s, -ms-box-shadow 1s, -ms-transform 1s, background 1s, color 1s;
+	-o-transition:opacity 1s, -o-box-shadow 1s, -o-transform 1s, background 1s, color 1s;
+	opacity:1;
+}
+.tit1{
+	font:18px handel;
+	color:#000;
+}
+.ups{
+	font:20px handel;
+	color:#6C3;
+}
+.center{
+	text-align:center;
+	margin-top:100px;
+}
+.d-titulo{
+	font-size:15px;
+	color:#0070b6;
+	background-color:#eff7fd;
+	padding:10px 10px;
+	border-radius: 20px 0px 0px 0px;
+	-webkit-border-radius: 20px 0px 0px 0px;
+	-moz-border-radius: 20px 0px 0px 0px;
+	-o-border-radius: 20px 0px 0px 0px;
+	-ms-border-radius: 20px 0px 0px 0px;
+}
+
+
+/**************************************  CSS-CAJERO ****************************************************/
+/**************************************  CSS-CAJERO ****************************************************/
+
+#ir{
+	height:100px;
+	background:url(../../Images/boton_sala.jpg);
+	background-color:#fbd238;
+	border:1px solid #fbd238;
+}
+#ir:hover, #ir:focus{
+	background:url(../../Images/fondo_sala.jpg);
+	background-color:#d9ecfa;
+	border:1px solid #d9ecfa;
+}
+#inicio-caja{
+	margin-top:50px;
+	margin-bottom:50px;
+	margin-left:auto;
+	margin-right:auto;
+	background:url(../../Images/fondo_eee.jpg);;
+	border-radius: 40px 0px 40px 0px;
+	-webkit-border-radius:40px 0px 40px 0px;
+	-moz-border-radius:40px 0px 40px 0px;
+	-o-border-radius:40px 0px 40px 0px;
+	-ms-border-radius:40px 0px 40px 0px;
+	height:250px;
+	font: 14px webfont;
+	border: 1px solid #333;
+}
+.input30{
+	height:30px;
+	width:90%;
+	font:25px handel;
+	text-align:center;
+}
+#prod-list{
+	width:40%;
+	height:400px;
+	float:left;
+	margin:10px;
+}
+#show{
+	display:none;
+}
+#shop-cart
+{	font:14px Verdana, Geneva, sans-serif;
+	float:right;
+	width:98%;
+	margin:10px;
+	overflow:auto;
+	alignment-adjust:central;
+}
+
+#sala-footer{
+	width:100%;
+	margin-left:auto;
+	margin-right:auto;
+	height:90px;
+	position:fixed;
+	padding:10px;
+	bottom: 0px;
+	background:url(../../Images/fondo_sala.jpg);
+	color:#000;
+}
+
+#ingreso-footer{
+	width:100%;
+	margin-left:auto;
+	margin-right:auto;
+	height:90px;
+	padding:10px;
+	bottom: 0px;
+	background:url(../../Images/fondo_sala.jpg);
+	color:#000;
+}
+
+
+#sala-footer:hover{
+	
+}
+
+#sala-cancel{
+	float:left;
+	width:120px;
+}
+#sala-total{
+	font:30px handel;
+	width:40%;
+	float:right;
+	margin:10px;
+}
+.totales{
+	font:25px handel;
+	color:#FFF;
+	background-color:#C30;	
+}
+.ui-autocomplete-loading {
+	background: white url('../../Images/ui-anim_basic_16x16.gif') right center no-repeat;
+}
+.table2{
+	border-collapse:collapse;
+	border:1px solid #ddd;
+}
+
+.table, .table3{
+	border-collapse:collapse;
+	border:3px solid #ddd;
+}
+
+.table tr:nth-child(even),.table3 tr:nth-child(even){
+	background-color:#F2F2F2;
+}
+
+.table tr:nth-child(n+2):hover{
+	color:#FFF;
+	text-shadow:2px 2px 2px #000;
+	background-color:#5BABF4;
+}
+
+.text_bold{
+	font-size:12px;
+	font-weight:600;
+}
+
+#factura-izq{
+	float:left;
+	margin:20px 0px;
+	height:500px;
+	width:700px;	
+}
+#factura-der{
+	float:right;
+	margin:20px;
+	height:500px;
+	width:380px;
+}
+#factura-der .form-input{
+	text-align:center;
+}
+
+.sep_grande{
+	background: url(../../Images/separador_sala.png) no-repeat;
+}
+
+.boton_grande{
+	height:70px;
+	width:100%;
+	border:1px solid #FC0;
+	cursor:pointer;
+	background:url(../../Images/boton_sala.jpg);
+	
+}
+
+.boton_grande img{
+	width:60px;
+	height:60px;
+}
+
+.boton_grande:hover{
+	-webkit-transition:all 1s;
+		
+}
+
+.boton_mediano{
+	height:70px;
+	width:100%;
+	border:1px solid #FC0;
+	cursor:pointer;
+	background:url(../../Images/boton_sala.jpg);
+	
+}
+
+.boton_mediano img{
+	width:25px;
+	height:25px;
+}
+
+.boton_mediano:hover{
+	-webkit-transition:all 1s;
+		
+}
+
+
+
+.naranja{
+	background-color:#F60;
+	color:#FFF;
+}
+.verde{
+	background-color:#0C3;
+	color:#FFF;
+}
+.rojo{
+	background-color:#C03;
+	color:#FFF;
+}
+#fac-cancel{
+	font:20px handel;	
+}
+#fac-impr{
+	font:20px handel;	
+}
+#recibo-impr{
+	font:20px handel;	
+}
+.cheque{
+	display:none;
+}
+.tipo-pago
+{
+	font-size:14px;
+	font-weight:700;
+}
+/**************************************  CIERRRE DE CAJA *********************************/
+#ci-izq{
+	float:left;
+	width:58%;	
+	padding:5px;
+}
+#ci-der{
+	float:right;
+	width:39%;	
+	padding:5px;
+}
+#cierre_ventas{
+	overflow:auto;
+	max-height:600px;
+}
+
+.input15{	
+	font:13px webfont;
+	text-align:center;
+}
+.filaventa{
+
+}
+.filaventa:hover{
+	background:#09F;
+	color:#FFF;
+	cursor:pointer;
+}
+.movimiento_si{
+  color:rgba(0,153,0,1);
+}
+.movimiento_si:hover{
+	background-color:rgba(0,153,0,0.1);
+	cursor:pointer;
+}
+.movimiento_no{
+	color:rgba(228,55,52,1);
+}
+.movimiento_no:hover{
+ background-color:rgba(204,102,102,0.1);
+ cursor:pointer;
+}
+.enlaces_a{
+	color:#36C;
+	
+/*	rgba(0,153,255,1);*/
+}
+.enlaces_a:hover{
+ background-color:rgba(0,153,255,0.1);
+}
+.tr_oculto{
+	display:none;
+}
+/**************************************  CSS-PROVEEDORES ****************************************************/
+/**************************************  CSS-PROVEEDORES ****************************************************/
+#prov-content{	
+	width:100%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+#prov-buscar{
+	background-color:#E8EBEC;
+}
+#prov-busqueda{
+	width:100%;
+	margin:2px;
+}
+#prov-list{
+	background-color:#FFF;
+}
+
+#prov-nuevo{
+	border:1px solid #91c05e;
+	width:60%;
+	margin-top:50px;
+	margin-left:auto;
+	margin-right:auto;
+	display:none;
+	color:#FFF;
+	background:url(images/fondo_form.jpg);
+}
+
+form input[type = 'text'], select {
+	display:inline;
+	border:1px solid #999;
+}
+.inline{
+	display:inline;
+}
+/************************************C.POR PAGAR-COBRAR*********************************/
+
+#cpc-form, #cpp-form{
+	border:2px solid #91c05e;
+	width:50%;
+	margin-top:20px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-bottom:50px;
+	display:none;
+	background:url(images/fondo_form.jpg);
+	padding-bottom:20px;
+	color:#FFF;
+}
+
+.cpp_pago,.cpc_pago{
+	display:none;
+}
+
+/********************************************** CSS - MOVCAJA - ADMIN *********************************/
+#repv-menu
+{
+	top:215px;
+	width:100%;	
+	position:fixed;
+	background:rgba(255,255,255,0.8);
+}
+#repv-menu form{
+	background:url(images/enc_tablas_down.jpg);
+	border:3px solid #71bbec;
+	height:50px;
+}
+
+#repv-cajas{
+	margin:280px 10px 50px 10px;
+}
+#rept-traspasos{
+	margin:295px 10px;
+}
+
+#mov-cajas
+{
+	margin-top:320px;
+}
+
+#cajas a{
+	color:#3fa9f5;
+	text-decoration:none;
+}
+
+#cajas a:hover{
+	color:#F00;
+}
+/************************************************************************************************************/
+/**********************************************  CSS-EGRESOS-CAJA ************************************************/
+#econtent{
+	width:800px;
+	margin:80px auto; 
+	background:url(images/fondo_form.jpg);
+	color:#FFF;
+	font:15px webfont;
+	border-radius:20px 20px;
+	-webkit-border-radius:20px 20px;
+	-o-border-radius:20px 20px;
+	-moz-border-radius:20px 20px;
+	-ms-border-radius:20px 20px;
+	border:1px solid #333;
+}
+
+#egrlist{
+	width:600px;
+	margin:0px auto;
+	display:none;
+}
+#edesc
+{
+	width:300px;
+	font:13px webfont;
+	height:100px;
+}
+/***********************************************GRAFICOS***********************************/
+.td_gr{
+	padding:0px;
+	background-color:#FFF;
+	font:10px webfont;
+}
+
+.div_gr{
+	height:30px;
+	float:left;
+	margin-right:1%;
+	border:1px solid rgba(0,0,0,0.7);
+	-ms-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-moz-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-o-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-webkit-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+}
+.div_shadow{
+	border:1px solid rgba(0,0,0,0.7);
+	-ms-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-moz-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-o-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+	-webkit-box-shadow:0px -15px 20px rgba(0,0,0,0.3) inset;
+}
+
+
+.border-all,
+.border-left,
+.border-arriba,
+.border-abajo,
+.border-izq{
+	border-left: 1px solid;
+}
+.border-all,
+.border-right,
+.border-arriba,
+.border-abajo,
+.border-der{
+	border-right: 1px solid;
+}
+.border-all,
+.border-top,
+.border-arriba,
+.border-izq,
+.border-der{
+	border-top: 1px solid; 
+}
+.border-all,
+.border-bottom,
+.border-abajo,
+.border-izq,
+.border-der{
+	border-bottom: 1px solid;
+}
+.none{ display:none; }
+.fleft{ float:left; }
+.fright{ float:right; }
+
+.ui-effects-transfer_carrito { 
+	border: 3px dashed gray;
+	background: url(../css/images/go_cart.png) no-repeat 50% 50%;
+	background-size:contain;
+}
+
+.ui-effects-transfer { 
+	border: 3px dashed gray;
+	background: url(../../Images/user.png) no-repeat 50% 50%;
+	background-size:contain;
+}
+
+.ui-effects-transfer_dinero { 
+	border: 3px dashed gray;
+	background: url(../../Images/sala_ventas.png) no-repeat 50% 50%;
+	background-size:contain;
+}
+
+
+.text-rotation {
+	-webkit-transform: rotate(270deg); text-align:center;
+	-moz-transform: rotate(270deg); text-align:center;
+}
+
+.anchoFijoCelda{
+	style="max-width: 350px;
+}
+
+/******************* CARGADOR EFRAIN SALINAS LOADER,JS *************************/
+
+#WindowLoad
+{
+	position:fixed;
+	top:0px;
+	left:0px;
+	z-index:3200;
+	filter:alpha(opacity=65);
+   -moz-opacity:65;
+	opacity:0.65;
+	background:#999;
+}	
+
+	.errorMensaje{
+		background-color: #FFF;
+		border-radius: 4px 4px 4px 4px;
+		color: #BC1010;
+		border:1px solid #BC1010;
+		margin-left:10px;
+		padding: 5px 20px;
+		position: relative;
+		font:10px webfont;
+	}	
+	
+	.errorMensaje:before{
+		border-color: transparent #BC1010 transparent transparent;
+		border-style: solid;
+		border-width: 6px 8px;
+		content: "";
+		display: block;
+		height: 0;
+		left: -16px;
+		position:absolute;
+		top: 8px;
+		width: 0;
+	}
+	
+	input.mayusculas{
+		text-transform:uppercase;
+	}
+
+
+
+

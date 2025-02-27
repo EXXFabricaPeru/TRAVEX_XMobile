@@ -1,0 +1,7 @@
+{
+  "name": "xMobile",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}

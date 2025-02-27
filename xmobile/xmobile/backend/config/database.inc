@@ -1,0 +1,1 @@
+xmobile#root##10.10.10.2:30015#SBO_TRAVEX_PROD21#$Travex2021#

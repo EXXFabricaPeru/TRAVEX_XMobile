@@ -1,0 +1,695 @@
+<?php
+
+namespace console\controllers;
+
+use backend\models\Configlayer;
+use backend\models\Sincronizar;
+use backend\models\Servislayer;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Yii;
+use yii\console\Controller;
+
+
+class DiarioController extends Controller
+{
+    public function actionIndex()
+    {
+        return $this->render('index');
+    }
+
+    public function actionSicronizarsap() {
+        set_time_limit(0);
+        Yii::error('SINCRONIZACION DIARIA ACTIVADA');
+        /*$this->obtenerContactosClientes();
+        $this->obtenerSucursalClientes();
+        $this->obtenerProductos();
+        $this->ObtenerProductosAlmacenes();
+        $this->ObtenerProductosPrecios();
+        $this->ObtenerSeriesProductos();
+        $this->ObtenerLotesProductos();*/
+		
+		$this->ObtenrFacturasCabecera();       
+        $this->ObtenrFacturasDetalle();
+        
+        $this->ObtenerSapOfertasCabecera();
+        $this->ObtenerSapOfertasDetalles();
+
+        $this->ObtenrPedidosCabecera();
+        $this->ObtenrPedidosDetalle();
+
+        $this->ObtenerSapEntregasCabecera();
+        $this->ObtenerSapEntregasDetalles();
+    }
+
+    private function obtenerContactosClientes() {
+        $serviceLayer = new Sincronizar();
+        $data = json_encode(array("accion" => 51));
+        $respuesta = $serviceLayer->executex($data);
+        $respuesta = json_decode($respuesta);
+        $fecha = date("Y-m-d");
+        Yii::error("SINCRONIZA ODBC: Contactos Clientes: " . json_encode($respuesta));
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE contactos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      foreach ($respuesta as $puntero) {
+          $sql = "";
+          //$sql = "UPDATE cojnta set fax= '{$puntero->Fax}' where SalesEmployeeCode='{$puntero->SlpCode}'";
+          $sql .= "INSERT INTO `contactos`(`id`, `cardCode`, `nombre`, `direccion`, `telefono1`, `telefono2`, `celular`, `tipo`, `comentarios`, `User`, `Status`, `DateUpdate`, `correo`, `titulo`) VALUES (DEFAULT,";
+          $sql .= "'{$puntero->CardCode}','{$puntero->Name}','{$puntero->Address}','{$puntero->Phone1}','{$puntero->Phone2}','{$puntero->MobilePhone}','0','{$puntero->Comment}','{$puntero->User}','0','{$fecha}','{$puntero->Mail}','{$puntero->Title}'";
+          Yii::$app->db->createCommand($sql)->execute();
+          // Yii::error("SINCRONIZA ODBC CONTACTO linea: ".$sql); FUNCIONANDO 14092020
+         
+      }
+    }
+  
+    private function obtenerSucursalClientes() {
+        $serviceLayer = new Sincronizar();
+        $data = json_encode(array("accion" => 52));
+        $respuesta = $serviceLayer->executex($data);
+        $respuesta = json_decode($respuesta);
+        $fecha = date("Y-m-d");
+        Yii::error("SINCRONIZA ODBC: Sucursal Clientes: " . json_encode($respuesta));
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE clientessucursales;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      foreach ($respuesta as $puntero) {
+          $sql = "";
+          //$sql = "UPDATE cojnta set fax= '{$puntero->Fax}' where SalesEmployeeCode='{$puntero->SlpCode}'";
+          $sql .= "INSERT INTO `clientessucursales`(`id`,`AddresName`, `Street`, `State`, `FederalTaxId`, `CreditLimit`, `CardCode`, `User`, `Status`, `DateUpdate`, `TaxCode`) VALUES (DEFAULT,";
+          $sql .= "'{$puntero->AddressName}','{$puntero->Street}','{$puntero->State}','{$puntero->FederalTaxID}','{$puntero->CreditLimit}','{$puntero->CardCode}','{$puntero->UserSign}','1','{$fecha}','{$puntero->TaxCode}'";
+          Yii::$app->db->createCommand($sql)->execute();
+          // Yii::error("SINCRONIZA ODBC SUCURSAL linea: ".$sql); FUNCIONANDO 14092020
+         
+      }
+    }
+
+    private function obtenerProductos(){
+        Yii::error("SINCRONIZA ODBC Productos : ");
+        
+        try {
+            $serviceLayer = new Sincronizar();
+            //recuperamos la cantidad de productos
+            $data = json_encode(array("accion" => 23));
+            $respuesta = json_decode($respuesta);
+            $cantidad = $respuesta[0]["CANTIDAD"];
+            //fin de cantidad
+            $data = json_encode(array("accion" => 20));
+            $respuesta = $serviceLayer->executex($data);
+            $respuesta = json_decode($respuesta);
+            $textoProducto = '';
+            $insertProducto = '';
+            $sql = "SELECT * FROM configuracion WHERE parametro LIKE 'producto_std%' AND estado=1 ORDER BY parametro";
+            $parametrosProducto = Yii::$app->db->createCommand($sql)->queryAll();
+            $cantidadProducto = count($parametrosProducto);
+            if (count($parametrosProducto)){
+                for ($c = 0; $c < $cantidadProducto; $c++){
+                    if ($textoProducto == ''){
+                        $textoProducto = ',{$p->'.$parametrosProducto[$c]["valor2"].'}';
+                        //$textoProducto = "'{$p->"."$parametrosProducto[$c]["valor2"]"."}'";
+                        //'{$p->U_Centro}',
+                        $insertProducto = ",`".$parametrosProducto[$c]["parametro"]."`";
+                    }
+                    else {
+                        //$textoProducto = $textoProducto.","."'{`$`"."p->".$parametrosProducto[$c]["valor2"]."}'";
+                        $textoProducto = $textoProducto.','.'{$p->'.$parametrosProducto[$c]["valor2"].'}';
+                        $insertProducto = $insertProducto.',`'.$parametrosProducto[$c]["parametro"].'`';
+                    }
+                }
+            }
+            $productos = '';
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE copiaproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            //Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            $user = 2;
+            $status = 1;
+            $fecha = date("Y-m-d");        
+            foreach ($respuesta as $p) { 
+              $miaux_combo = 0;
+              $miaux_series = 0;
+              $miaux_lotes = 0;
+                if($p->TreeType == "iTemplateTree"){
+                  $miaux_combo = 1;
+                  //$this->combos(); 
+                }                
+                else $miaux_combo = 0;    
+                if($puntero->ManageSerialNumbers == "tYES") $miaux_series = 1;
+                else $miaux_series = 0;
+                if($puntero->ManageBatchNumbers == "tYES") $miaux_lotes = 1;
+                else $miaux_lotes = 0;
+                
+                $textoProducto = '';
+                $valorDesdeSAP = '';
+                $campoDeSAP = '';
+                if (count($parametrosProducto)){
+                  for ($c = 0; $c < $cantidadProducto; $c++){
+                    $campoDeSAP = $parametrosProducto[$c]["valor2"];
+                    $valorDesdeSAP = $p->$campoDeSAP;
+                    if ($textoProducto == ''){
+                      $textoProducto = ",'".$valorDesdeSAP."'";
+                    }
+                    else{
+                      $textoProducto = $textoProducto.",'".$valorDesdeSAP."'";
+                    }
+                  }
+                }
+                
+                $sqlSub = "";
+                $sqlSub .= "INSERT INTO `copiaproductos`(`id`, `ItemCode`, `ItemName`, `ItemsGroupCode`, `ForeignName`, `CustomsGroupCode`, `BarCode`, `PurchaseItem`, `SalesItem`, `InventoryItem`, `UserText`, `SerialNum`, `QuantityOnStock`, `QuantityOrderedFromVendors`, `QuantityOrderedByCustomers`, `ManageSerialNumbers`, `ManageBatchNumbers`, `SalesUnit`, `SalesUnitLength`, `SalesUnitWidth`, `SalesUnitHeight`, `SalesUnitVolume`, `PurchaseUnit`, `DefaultWarehouse`, `ManageStockByWarehouse`, `ForceSelectionOfSerialNumber`, `Series`, `UoMGroupEntry`, `DefaultSalesUoMEntry`, `User`, `Status`, `DateUpdate`, `Manufacturer`, `NoDiscounts`, `created_at`, `updated_at`, `combo`".$insertProducto.") VALUES (DEFAULT,";
+                $sqlSub .= "'{$p->ItemCode}','{$p->ItemName}','{$p->ItmsGrpCod}','{$p->FrgnName}','{$p->CstGrpCode}','{$p->CodeBars}','{$p->PrchseItem}','{$p->SellItem}','{$p->InvntItem}','{$p->UserText}','','{$p->OnHand}','{$p->IsCommited}','{$p->OnOrder}','{$p->ManSerNum}','{$p->ManBtchNum}','{$p->SalUnitMsr}','{$p->SLength1}','{$p->SWidth1}','{$p->BHeight1}','{$p->Svolume}','{$p->BuyUnitMsr}','{$p->DfltWH}','{$p->ByWh}','{$p->EnAstSeri}','{$p->Series}','{$p->UgpEntry}','{$p->SUoMEntry}',{$user},1,'{$fecha}','{$p->FirmCode}','{$p->NoDiscount}','{$p->CreateDate}','{$p->UpdateDate}',{$miaux_combo}".$textoProducto.")";
+                //{$p->SERIALNUMBER}
+                $db = Yii::$app->db;
+                $db->createCommand($sqlSub)->execute();
+            }
+            $this->insertLog2('sincroniza', 'Productos', 'success');
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'Productos', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta); 
+              
+    }
+    
+    private function ObtenerProductosAlmacenes(){
+        Yii::error("SINCRONIZA ODBC Productos almacenes : "); 
+          
+        try {
+            $serviceLayer = new Sincronizar();
+            //cantidad
+            $data = json_encode(array("accion" => 24));
+            $respuesta = $serviceLayer->executex($data);        
+            $respuesta = json_decode($respuesta);
+            $cantidadTotal = $respuesta[0]->CANTIDAD;
+            $offset = 0;
+            $ciclos = 1;
+            $limite = 100;
+            if ($cantidadTotal > $limite){
+                $ciclos = (int)($cantidadTotal / $limite);
+                if ($ciclos < ($cantidadTotal / $limite)) $ciclos = $ciclos + 1;
+            }
+            echo 'cantidad: '.$cantidadTotal;
+            echo '    ciclos: '.$ciclos;
+            //fin cantidad
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE copiaproductosalmacenes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            for ($i = 1; $i <= $ciclos; $i++ ){
+                echo '    offset: '.$offset;
+                $data = json_encode(array("accion" => 21, "inicio" => $offset, "limite" => $limite));
+                $respuestauno = $serviceLayer->executex($data);
+                echo '    respuestauno: '.$respuestauno;
+                $respuestauno = json_decode($respuestauno);
+                echo '    Cantidad: '.count($respuestauno);
+                //Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE copiaproductosalmacenes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                $user = 2;
+                $fecha = date("Y-m-d");
+                $conteo = 0;
+                //echo '    inciando registro    ';
+                foreach ($respuestauno as $punteroSub) {
+                    $conteo = $conteo + 1;
+                    echo '    conteo: '.$conteo;
+                    $sqlSub = "";
+                    $sqlSub .= "INSERT INTO `copiaproductosalmacenes`(`id`, `ItemCode`, `WarehouseCode`, `InStock`, `Committed`, `Locked`, `Ordered`, `User`, `Status`, `DateUpdate`) VALUES (DEFAULT,";
+                    $sqlSub .= "'{$punteroSub->ItemCode}','{$punteroSub->WhsCode}','{$punteroSub->OnHand}','{$punteroSub->IsCommited}','{$punteroSub->Locked}','{$punteroSub->OnOrder}',";
+                    $sqlSub .= $user.",1,'".$fecha."');";
+                    $db = Yii::$app->db;
+                    $db->createCommand($sqlSub)->execute();                
+                }
+                $offset = $offset + $limite;
+            }
+            $this->insertLog2('sincroniza', 'productos almacenes', 'success');
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'productos almacenes', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);
+       
+    }
+    
+      private function ObtenerProductosPrecios(){
+        Yii::error("SINCRONIZA ODBC Productos precios : ");
+        
+        try {
+            $serviceLayer = new Sincronizar();
+            $data = json_encode(array("accion" => 22));
+            $respuesta = $serviceLayer->executex($data);
+    
+            $respuesta = json_decode($respuesta);
+    
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE copiaproductosprecios;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            $user = 2;
+            $fecha = date("Y-m-d");
+            foreach ($respuesta as $punteroSub) {
+                $sqlSub = "";
+                $sqlSub .= "INSERT INTO `copiaproductosprecios`(`id`, `ItemCode`, `IdListaPrecios`, `IdUnidadMedida`, `Price`, `Currency`, `User`, `Status`, `DateUpdate`) VALUES (DEFAULT,";
+                $sqlSub .= "'{$punteroSub->ItemCode}','{$punteroSub->PriceList}','{$punteroSub->UomEntry}','{$punteroSub->Price}','{$punteroSub->Currency}',";
+                $sqlSub .= $user.",1,'".$fecha."');";
+                $db = Yii::$app->db;
+                $db->createCommand($sqlSub)->execute();
+            }
+            $this->insertLog2('sincroniza', 'productos precios', 'success');
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'productos precios', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);
+     
+    }
+
+    private function ObtenerSeriesProductos() {
+        Yii::error('SINCRONIZACION DE SERIES DE PRODUCTOS POR ODBC');
+        try {
+            $serviceLayer = new Sincronizar();
+            $data = json_encode(array("accion"=>32));
+            $respuesta = $serviceLayer->executex($data);
+            $respuesta = json_decode($respuesta);
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE seriesproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            $fecha = date("Y-m-d");
+
+            // Yii::error('Respuesta SINC: ' . json_encode($respuesta));
+            foreach($respuesta as $serie){
+                $sql = "";
+                $sql .= "INSERT INTO `seriesproductos` (`DocEntry`, `ItemCode`, `SerialNumber`, `SystemNumber`, `AdmissionDate`, `User`, `Status`, `Date`, `WsCode`) VALUES (";
+                $sql .= "'{$serie->AbsEntry}','{$serie->ItemCode}','{$serie->DistNumber}','{$serie->SysNumber}','{$serie->InDate}','{$serie->UserSign}',1,'{$fecha}','0')";
+                $db = Yii::$app->db;
+                $db->createCommand($sql)->execute();
+                // Yii::error('Respuesta insert: ' . $sql);
+            }
+
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'series de productos', $e);
+        }
+    }
+
+    private function ObtenerLotesProductos() {
+        Yii::error("SINCRONIZA ODBC Lotes de productos : ");
+        $serviceLayer = new Sincronizar();
+        $data = json_encode(array("accion" => 6));
+        $respuesta = $serviceLayer->executex($data);
+        // Yii::error("SINCRONIZA ODBC Lotes de productos : ".$respuesta);
+        $respuesta = json_decode($respuesta);
+
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE lotesproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+        $user = 2;
+        $fecha = date("Y-m-d");
+        foreach ($respuesta as $punteroSub) {
+            $cantidad = intval($punteroSub->Quantity);
+            $sqlSub = "";
+            $sqlSub .= "INSERT INTO `lotesproductos`(`ItemCode`, `BatchNum`, `WhsCode`,  `ExpDate`,  `InDate`,  `Quantity`, `BaseType`, `BaseEntry`, `BaseNum`, `BaseLinNum`, `DataSource`, `Transfered`) VALUES (";
+            $sqlSub .= "'{$punteroSub->ItemCode}','{$punteroSub->BatchNum}','{$punteroSub->WhsCode}','{$punteroSub->Expira}','{$punteroSub->Ingreso}','{$cantidad}','{$punteroSub->BaseType}','{$punteroSub->BaseEntry}','{$punteroSub->BaseNum}','{$punteroSub->BaseLinNum}','{$punteroSub->DataSource}','{$punteroSub->Transfered}');";
+
+            //Yii::error("SINCRONIZA Lotes productos : ".$sqlSub);
+            $db = Yii::$app->db;
+            $transaction = $db->beginTransaction();
+            try {
+                $db->createCommand($sqlSub)->execute();
+                $transaction->commit();
+                //$this->insertLog2('sincroniza', 'Lotes de productos', 'Success');
+            } catch (\Exception $e) {
+                $transaction->rollBack();
+                $this->insertLog2('sincroniza', 'Lotes de productos', $e);
+                throw $e;
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                $this->insertLog2('sincroniza', 'Lotes de productos', $e);
+                throw $e;
+            }
+        }
+
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+	
+	private function ObtenrFacturasCabecera() {
+        Yii::error("SINCRONIZA ODBC: Facturas Cabecera");
+        $serviceLayer = new Sincronizar();
+        $data = json_encode(array("accion" => 101));
+        $respuesta = $serviceLayer->executex($data);
+        $respuesta = json_decode($respuesta);
+        $contador=$respuesta[0]->REGISTROS;
+        //$contador=10000;
+        Yii::error("SINCRONIZA ODBC: registros".$contador);
+        $campos="id,DocEntry,DocNum,DocDate,DocDueDate,CardCode,CardName,DocTotal,DocCurrency,JournalMemo";
+        $campos .= ",PaymentGroupCode,DocTime,Series,TaxDate,CreationDate,UpdateDate";
+        $campos .= ",FinancialPeriod,UpdateTime,U_LB_NumeroFactura,U_LB_NumeroAutorizac,U_LB_FechaLimiteEmis";
+        $campos .= ",U_LB_CodigoControl,U_LB_EstadoFactura,U_LB_RazonSocial,U_LB_TipoFactura,SalesPersonCode";
+        $campos .= ",ReserveInvoice,PaidtoDate,Saldo,TransId,DocStatus,InvStatus,User,Status,DateUpdate,U_LB_NIT,U_xMOB_Codigo";
+        for($reg= 0;  $reg < $contador; $reg+=1000){
+            $datos=" ";
+            $data = json_encode(array("accion" => 1,"salto"=>$reg));            
+            $respuesta = $serviceLayer->executex($data); 
+            $respuesta = json_decode($respuesta);
+            foreach ($respuesta as $puntero) {
+                $pagado = round($puntero->PaidToDate, 2);
+                $saldo = round($puntero->Saldo, 2);
+                If ($puntero->JournalMemo == null) {
+                    $puntero->JournalMemo = "nn";
+                }
+                $datos .= "(DEFAULT,";
+                $datos .= "{$puntero->DocEntry},'{$puntero->DocNum}','{$puntero->DocDate}','{$puntero->DocDueDate}'";
+                $datos .= ",'{$puntero->CardCode}','{$this->remplaceString($puntero->CardName)}',{$puntero->DocTotal},'{$puntero->DocCurrency}','{$this->remplaceString($puntero->JournalMemo)}'";
+                $datos .= ",{$puntero->PaymentGroupCode},'{$puntero->DocTime}',{$puntero->Series},'{$puntero->TaxDate}','{$puntero->CreationDate}','{$puntero->UpdateDate}'";
+                $datos .= ",'{$puntero->FinancialPeriod}','{$puntero->UpdateTime}','{$puntero->U_LB_NumeroFactura}','{$puntero->U_LB_NumeroAutorizac}','{$puntero->U_LB_FechaLimiteEmis}'";
+                $datos .= ",'{$puntero->U_LB_CodigoControl}','{$puntero->U_LB_EstadoFactura}','{$puntero->U_LB_RazonSocial}','{$puntero->U_LB_TipoFactura}',{$puntero->SalesPersonCode}";
+                $datos .= ",'{$puntero->ReserveInvoice}',{$pagado},{$saldo},'{$puntero->TransId}','{$puntero->Status}','{$puntero->pedienteEntrega}',";
+                $datos .= "1,1,'" . Carbon::today() . "','{$puntero->U_LB_NIT}','{$puntero->U_xMOB_Codigo}'";
+                $datos .= "),";
+            } 
+            $cadena = substr($datos, 0, -1);
+            $sql="INSERT INTO facturas ({$campos} ) VALUES {$cadena};";            
+            $db = Yii::$app->db; 
+            if($reg==0)
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE facturas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+            $db->createCommand($sql)->execute();  
+                  
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+    
+    private function ObtenrFacturasDetalle() {
+        Yii::error("SINCRONIZA ODBC: Facturas Cuerpo");
+        try{
+            $serviceLayer = new Sincronizar();
+	    	$data = json_encode(array("accion" => 105));
+		    $respuesta = $serviceLayer->executex($data);
+    		$respuesta = json_decode($respuesta);
+	    	$contador = $respuesta[0]->REGISTROS;
+		    Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+            $campos = "(id,LineNum,ItemCode,ItemDescription,Quantity,Price,PriceAfterVAT,Currency,Rate,LineTotal,TaxTotal,UnitPrice,DocEntry,DocNum,Entregado,OpenQty,User,Status,DateUpdate,WhsCode,OcrCode,OcrCode2,Linestatus,InvStatus,OpenSum,UomCode)";
+            for($reg= 0;  $reg < $contador; $reg+=1000){
+                $sql = " ";
+                $data = json_encode(array("accion" => 2,"salto"=>$reg));
+                $respuesta = $serviceLayer->executex($data);            
+                $respuesta = json_decode($respuesta);
+                foreach ($respuesta as $punteroSub) {
+                    If ($punteroSub->Rate == null) {
+                        $punteroSub->Rate = 1;
+                    }
+                    $punteroSub->ItemDescription = str_replace("'"," ",$punteroSub->ItemDescription);
+                    $sql .= "(DEFAULT, '{$punteroSub->LineNum}','{$punteroSub->ItemCode}','{$punteroSub->ItemDescription}','{$punteroSub->Quantity}','{$punteroSub->Price}','{$punteroSub->PriceAfterVAT}','{$punteroSub->Currency}','{$punteroSub->Rate}','{$punteroSub->LineTotal}','{$punteroSub->TaxTotal}','{$punteroSub->UnitPrice}','{$punteroSub->DocEntry}','{$punteroSub->DocNum}','{$punteroSub->Entregado}','{$punteroSub->OpenQty}',";
+                    $sql .= "1,1,'" . Carbon::today() . "','{$punteroSub->WhsCode}','{$punteroSub->OcrCode}','{$punteroSub->OcrCode2}','{$punteroSub->LineStatus}','{$punteroSub->InvntSttus}','{$punteroSub->OpenSum}','{$punteroSub->UomCode}'";
+                    $sql .= "),";
+                }                
+    			$cadena = substr($sql, 0, -1);
+                $sql = "INSERT INTO facturasproductos {$campos} VALUES {$cadena};";
+                $db = Yii::$app->db; 
+                if($reg==0)
+                    Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE facturasproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+                $db->createCommand($sql)->execute(); 
+            }
+        } catch (\Throwable $e) {
+            $this->insertLog2('sincroniza', 'Facturas Cuerpo', $e);
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+    private function ObtenerSapOfertasCabecera() {
+        Yii::error("SINCRONIZA ODBC: ofertas Cabecera");
+        $serviceLayer = new Sincronizar();
+        $data = json_encode(array("accion" => 102));
+        $respuesta = $serviceLayer->executex($data);
+        $respuesta = json_decode($respuesta);
+        $contador=$respuesta[0]->REGISTROS;
+        Yii::error("SINCRONIZA ODBC: registros: ".$contador);
+        $campos = "";
+        $campos .= "(id,";
+        $campos .= "DocEntry,  DocNum,  DocDate,  DocDueDate,  CardCode,  CardName,  DocTotal, ";
+        $campos .= "DocTime, Series, TaxDate, UpdateDate, U_LB_NumeroFactura, U_LB_NumeroAutorizac, U_LB_FechaLimiteEmis, ";
+        $campos .= "U_LB_CodigoControl, U_LB_EstadoFactura, U_LB_RazonSocial, U_LB_TipoFactura, User, Status, ";
+        $campos .= "DateUpdate, ReserveInvoice, SalesPersonCode, PaidtoDate, Saldo,DocStatus,InvStatus,U_LB_NIT,U_xMOB_Codigo ";
+        $campos .= ")";
+        for($reg= 0;  $reg < $contador; $reg+=1000){
+            $datos=" ";
+            $data = json_encode(array("accion" => 14,"salto"=>$reg));
+            $respuesta = $serviceLayer->executex($data);
+            //Yii::error("SINCRONIZA ODBC: ofertas Cabecera respuesta".$respuesta);
+            $respuesta = json_decode($respuesta);
+            foreach ($respuesta as $puntero) {
+                If ($puntero->JournalMemo == null) {
+                    $puntero->JournalMemo = "nn";
+                }
+                $datos .= "(DEFAULT,";
+                $datos .= "{$puntero->DocEntry},'{$puntero->DocNum}','{$puntero->DocDate}','{$puntero->DocDueDate}'";
+                $datos .= ",'{$puntero->CardCode}','{$this->remplaceString($puntero->CardName)}',{$puntero->DocTotal},'{$puntero->DocTime}','{$puntero->Series}','{$puntero->TaxDate}'";
+                $datos .= ",'{$puntero->UpdateDate}'";
+                $datos .= ",'{$puntero->U_LB_NumeroFactura}','{$puntero->U_LB_NumeroAutorizac}','{$puntero->U_LB_FechaLimiteEmis}'";
+                $datos .= ",'{$puntero->U_LB_CodigoControl}','{$puntero->U_LB_EstadoFactura}','{$puntero->U_LB_RazonSocial}','{$puntero->U_LB_TipoFactura}','{$puntero->User}','{$puntero->Status}','','{$puntero->ReserveInvoice}','{$puntero->SalesPersonCode}','{$puntero->PaidtoDate}','{$puntero->Saldo}','{$puntero->Status}','{$puntero->pedienteEntrega}','{$puntero->U_LB_NIT}','{$puntero->U_xMOB_Codigo}'";
+                $datos .= "),";
+            } 
+            $cadena = substr($datos, 0, -1);
+            $sql="INSERT INTO sapofertas {$campos} VALUES {$cadena};";
+            //Yii::error("SINCRONIZA ODBC: insert: ".$sql);            
+            $db = Yii::$app->db; 
+            if($reg==0)
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE sapofertas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+            $db->createCommand($sql)->execute(); 
+                  
+        }            
+          
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+    private function ObtenerSapOfertasDetalles() {
+        Yii::error("SINCRONIZA ODBC: oferta detalle");
+        try {
+            $serviceLayer = new Sincronizar();
+			$data = json_encode(array("accion" => 106));
+			$respuesta = $serviceLayer->executex($data);
+			$respuesta = json_decode($respuesta);
+			$contador = $respuesta[0]->REGISTROS;
+			Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+            $campos = '';
+            $campos .= "(id,";
+            $campos .= "DocEntry, LineNum, ItemCode, ItemDescription, Price, Quantity, ";
+            $campos .= "Currency, Rate, LineTotal, OpenQty, IdCabecera, Usuario,";
+            $campos .= "Status, DateUpdate,UomCode,PriceAfVAT, OcrCode, OcrCode2,WhsCode,GTotal,LineStatus";
+            $campos .= ")";            
+			for($reg= 0;  $reg < $contador; $reg+=1000){
+                $sql = " ";
+                $data = json_encode(array("accion" => 15,"salto"=>$reg));
+                $respuesta = $serviceLayer->executex($data);            
+                $respuesta = json_decode($respuesta);
+                foreach ($respuesta as $puntero) {
+                    If ($puntero->JournalMemo == null) {
+                        $puntero->JournalMemo = "nn";
+                    }
+                    $puntero->ItemDescription=str_replace("'"," ",$puntero->ItemDescription);                    
+                    $sql .= "(DEFAULT,{$puntero->DocEntry},'{$puntero->LineNum}','{$puntero->ItemCode}','{$puntero->ItemDescription}','{$puntero->Price}','{$puntero->Quantity}'";
+                    $sql .= ",'{$puntero->Currency}','{$puntero->Rate}','{$puntero->LineTotal}','{$puntero->OpenQty}'";
+                    $sql .= ",'{$puntero->IdCabecera}','{$puntero->Usuario}','{$puntero->Status}'";
+                    $sql .= ",'{$puntero->DateUpdate}','{$puntero->UomCode}','{$puntero->PriceAfVAT}','{$punteroSub->OcrCode}','{$punteroSub->OcrCode2}','{$puntero->WhsCode}','{$puntero->GTotal}','{$puntero->LineStatus}'";
+                    $sql .= "),";
+                }
+                $cadena = substr($sql, 0, -1);
+                $sql="INSERT INTO sapofertasdetalle {$campos} VALUES {$cadena};";
+                $db = Yii::$app->db; 
+                if($reg==0)
+                    Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE sapofertasdetalle;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+                $db->createCommand($sql)->execute(); 
+            }
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'oferta detalle', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+    private function ObtenrPedidosCabecera() {
+        Yii::error("SINCRONIZA ODBC: pedidos Cabecera");
+        try {
+            $serviceLayer = new Sincronizar();
+			$data = json_encode(array("accion" => 103));
+			$respuesta = $serviceLayer->executex($data);
+			$respuesta = json_decode($respuesta);
+			$contador = $respuesta[0]->REGISTROS;
+			Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+			$campos  = '';
+            $campos .= "(id,";
+            $campos .= "DocEntry,DocNum,DocDate,DocDueDate";
+            $campos .= ",CardCode,CardName,DocTotal,DocCurrency,JournalMemo";
+            $campos .= ",PaymentGroupCode,DocTime,Series,TaxDate,CreationDate,UpdateDate";
+            $campos .= ",FinancialPeriod,UpdateTime,U_LB_NumeroFactura,U_LB_NumeroAutorizac,U_LB_FechaLimiteEmis";
+            $campos .= ",U_LB_CodigoControl,U_LB_EstadoFactura,U_LB_RazonSocial,U_LB_TipoFactura,SalesPersonCode";
+            $campos .= ",ReserveInvoice,DocStatus,InvStatus,User,Status,DateUpdate,U_LB_NIT,U_xMOB_Codigo,U_XMB_repartidor,U_XMB_AUX1";
+			$campos .= ")";
+			for($reg= 0;  $reg < $contador; $reg+=1000){
+            $sql=" ";
+            $data = json_encode(array("accion" => 3,"salto"=>$reg));
+            $respuesta = $serviceLayer->executex($data);
+            $respuesta = json_decode($respuesta);
+            foreach ($respuesta as $puntero) {
+                If ($puntero->JournalMemo == null) {
+                    $puntero->JournalMemo = "nn";
+                }
+                
+                $sql .= "(DEFAULT,";
+                $sql .= "'{$puntero->DocEntry}','{$puntero->DocNum}','{$puntero->DocDate}','{$puntero->DocDueDate}'";
+                $sql .= ",'{$puntero->CardCode}','{$this->remplaceString($puntero->CardName)}','{$puntero->DocTotal}','{$puntero->DocCurrency}','{$puntero->JournalMemo}'";
+                $sql .= ",'{$puntero->PaymentGroupCode}','{$puntero->DocTime}','{$puntero->Series}','{$puntero->TaxDate}','{$puntero->CreationDate}','{$puntero->UpdateDate}'";
+                $sql .= ",'{$puntero->FinancialPeriod}','{$puntero->UpdateTime}','{$puntero->U_LB_NumeroFactura}','{$puntero->U_LB_NumeroAutorizac}','{$puntero->U_LB_FechaLimiteEmis}'";
+                $sql .= ",'{$puntero->U_LB_CodigoControl}','{$puntero->U_LB_EstadoFactura}','{$puntero->U_LB_RazonSocial}','{$puntero->U_LB_TipoFactura}','{$puntero->SalesPersonCode}'";
+                $sql .= ",'{$puntero->ReserveInvoice}','{$puntero->Status}','{$puntero->pedienteEntrega}',";
+                $sql .= "1,1,'{$puntero->Status}','{$puntero->U_LB_NIT}','{$puntero->U_xMOB_Codigo}','{$puntero->IdDistribuidor}','{$puntero->Distribuidor}'";
+                //$sql .= "1,1,'" . Carbon::today() . "','{$puntero->U_LB_NIT}','{$puntero->U_xMOB_Codigo}'";
+                $sql .= "),";
+            }
+			$cadena = substr($sql, 0, -1);
+            $sql="INSERT INTO pedidos {$campos} VALUES {$cadena};";
+            $db = Yii::$app->db; 
+            if($reg==0)
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE pedidos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+            Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+            $db->createCommand($sql)->execute(); 
+            //$this->insertLog2('sincroniza', 'pedidos Cabecera', 'success');
+        }
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'pedidos Cabecera', $e);
+        }
+    }
+    private function ObtenrPedidosDetalle() {
+        Yii::error("SINCRONIZA ODBC: pedidos Cuerpo");
+        try {
+            $serviceLayer = new Sincronizar();
+			$data = json_encode(array("accion" => 107));
+			$respuesta = $serviceLayer->executex($data);
+			$respuesta = json_decode($respuesta);
+			$contador = $respuesta[0]->REGISTROS;
+			Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+            $campos = '';
+            $campos .= "(id,LineNum,ItemCode,ItemDescription,Quantity,Price,PriceAfterVAT,Currency,Rate,LineTotal,TaxTotal,UnitPrice,DocEntry,DocNum,Entregado,OpenQty,User, OcrCode, OcrCode2,Status,DateUpdate,WhsCode,Linestatus,InvStatus,OpenSum,UomCode,U_XMB_CANTREP,U_XMB_ALMREP,U_XMB_LOTEREP,U_XMB_SERIEREP)";            
+			for($reg= 0;  $reg < $contador; $reg+=1000){
+                $sql = " ";
+                $data = json_encode(array("accion" => 4,"salto"=>$reg));
+                $respuesta = $serviceLayer->executex($data);            
+                $respuesta = json_decode($respuesta);        
+                foreach ($respuesta as $punteroSub) {
+                   If ($punteroSub->Rate == null) {
+                        $punteroSub->Rate = 1;
+                    }
+                    $punteroSub->ItemDescription=str_replace("'"," ",$punteroSub->ItemDescription);
+                    $sql .= "(DEFAULT,'{$punteroSub->LineNum}','{$punteroSub->ItemCode}','{$punteroSub->ItemDescription}','{$punteroSub->Quantity}','{$punteroSub->Price}','{$punteroSub->PriceAfterVAT}','{$punteroSub->Currency}','{$punteroSub->Rate}','{$punteroSub->LineTotal}','{$punteroSub->TaxTotal}','{$punteroSub->UnitPrice}','{$punteroSub->DocEntry}','{$punteroSub->DocNum}','{$punteroSub->Entregado}','{$punteroSub->OpenQty}',";
+                    $sql .= "1,'{$punteroSub->OcrCode}','{$punteroSub->OcrCode2}',1,'" . Carbon::today() . "','{$punteroSub->WhsCode}','{$punteroSub->LineStatus}','{$punteroSub->InvntSttus}','{$punteroSub->OpenSum}','{$punteroSub->UomCode}','{$punteroSub->UomCode}','{$punteroSub->UomCode}','{$punteroSub->UomCode}','{$punteroSub->UomCode}'";
+                    $sql .= "),";
+                }
+                $cadena = substr($sql, 0, -1);
+                $sql="INSERT INTO pedidosproductos {$campos} VALUES {$cadena};";
+                $db = Yii::$app->db; 
+                if($reg==0)
+                    Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE pedidosproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+                $db->createCommand($sql)->execute(); 
+            }
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            $this->insertLog2('sincroniza', 'pedidos Cuerpo', $e);
+            throw $e;
+        }
+    }
+    private function ObtenerSapEntregasCabecera() {
+        Yii::error("SINCRONIZA ODBC: entregas Cabecera");
+        try {
+            $serviceLayer = new Sincronizar();
+            $data = json_encode(array("accion" => 104));
+            $respuesta = $serviceLayer->executex($data);
+            $respuesta = json_decode($respuesta);
+            $contador = $respuesta[0]->REGISTROS;
+            Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+            $campos = "";
+            $campos .= "(id,";
+            $campos .= "DocEntry,  DocNum,  DocDate,  DocDueDate,  CardCode,  CardName,  DocTotal, ";
+            $campos .= "DocTime, Series, TaxDate, UpdateDate, U_LB_NumeroFactura, U_LB_NumeroAutorizac, U_LB_FechaLimiteEmis, ";
+            $campos .= "U_LB_CodigoControl, U_LB_EstadoFactura, U_LB_RazonSocial, U_LB_TipoFactura, User, Status, ";
+            $campos .= "DateUpdate, ReserveInvoice, SalesPersonCode, PaidtoDate, Saldo,DocStatus,InvStatus,U_LB_NIT,U_xMOB_Codigo)";
+            //  $sql .= ",U_LB_CodigoControl,U_LB_EstadoFactura,U_LB_RazonSocial,U_LB_TipoFactura,SalesPersonCode";
+            //  $sql .= ",ReserveInvoice,User,Status,DateUpdate";
+            for($reg= 0;  $reg < $contador; $reg+=1000){
+                $sql = " ";
+                $data = json_encode(array("accion" => 16,"salto"=>$reg));
+                $respuesta = $serviceLayer->executex($data);
+                $respuesta = json_decode($respuesta);
+                foreach ($respuesta as $puntero) {
+                    If ($puntero->JournalMemo == null) {
+                        $puntero->JournalMemo = "nn";
+                    }                
+                    $sql .= "(DEFAULT,";
+                    $sql .= "'{$puntero->DocEntry}','{$puntero->DocNum}','{$puntero->DocDate}','{$puntero->DocDueDate}'";
+                    $sql .= ",'{$puntero->CardCode}','{$this->remplaceString($puntero->CardName)}','{$puntero->DocTotal}','{$puntero->DocTime}','{$puntero->Series}','{$puntero->TaxDate}'";
+                    $sql .= ",'{$puntero->UpdateDate}'";
+                    $sql .= ",'{$puntero->U_LB_NumeroFactura}','{$puntero->U_LB_NumeroAutorizac}','{$puntero->U_LB_FechaLimiteEmis}'";
+                    $sql .= ",'{$puntero->U_LB_CodigoControl}','{$puntero->U_LB_EstadoFactura}','{$puntero->U_LB_RazonSocial}','{$puntero->U_LB_TipoFactura}','{$puntero->User}','{$puntero->Status}','','{$puntero->ReserveInvoice}','{$puntero->SalesPersonCode}','{$puntero->PaidtoDate}','{$puntero->Saldo}','{$puntero->Status}','{$puntero->pedienteEntrega}','{$puntero->U_LB_NIT}','{$puntero->U_xMOB_Codigo}'";
+                    // $sql .=",'{$puntero->ReserveInvoice}',";
+                    //  $sql .= "1,1,'".Carbon::today()."'";
+                    $sql .= "),";
+                    //Yii::error("SINCRONIZA ODBC: ".$sql);
+                    //$db = Yii::$app->db;
+                    //$db->createCommand($sql)->execute();                
+                }
+                $cadena = substr($sql, 0, -1);
+                $sql="INSERT INTO sapentregas {$campos} VALUES {$cadena};";
+                $db = Yii::$app->db; 
+                if($reg==0)
+                    Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE sapentregas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+                $db->createCommand($sql)->execute(); 
+            //$this->insertLog2('sincroniza', 'pedidos Cabecera', 'success');
+            }
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'sapentregas Cabecera', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+    private function ObtenerSapEntregasDetalles() {
+        Yii::error("SINCRONIZA ODBC: entregas detalle");
+        try {
+            $serviceLayer = new Sincronizar();
+			$data = json_encode(array("accion" => 108));
+			$respuesta = $serviceLayer->executex($data);
+			$respuesta = json_decode($respuesta);
+			$contador = $respuesta[0]->REGISTROS;
+			Yii::error("SINCRONIZAR ODBC: registros: ".$contador);
+            $campos = '';
+            $campos .= "(id,";
+            $campos .= "DocEntry, LineNum, ItemCode, ItemDescription, Price, Quantity, ";
+            $campos .= "Currency, Rate, LineTotal, OpenQty, IdCabecera, Usuario,";
+            $campos .= "Status, DateUpdate,UomCode,PriceAfVAT, OcrCode, OcrCode2,WhsCode,GTotal,LineStatus";
+            $campos .= ")";
+			for($reg= 0;  $reg < $contador; $reg+=1000){
+                $sql = " ";
+                $data = json_encode(array("accion" => 17,"salto"=>$reg));
+                $respuesta = $serviceLayer->executex($data);            
+                $respuesta = json_decode($respuesta);
+                foreach ($respuesta as $puntero) {
+                    If ($puntero->JournalMemo == null) {
+                        $puntero->JournalMemo = "nn";
+                    }
+                    $puntero->ItemDescription=str_replace("'"," ",$puntero->ItemDescription);
+                    $sql .= "(DEFAULT,";
+                    $sql .= "'{$puntero->DocEntry}','{$puntero->LineNum}','{$puntero->ItemCode}','{$puntero->ItemDescription}','{$puntero->Price}','{$puntero->Quantity}'";
+                    $sql .= ",'{$puntero->Currency}','{$puntero->Rate}','{$puntero->LineTotal}','{$puntero->OpenQty}'";
+                    $sql .= ",'{$puntero->IdCabecera}','{$puntero->Usuario}','{$puntero->Status}'";
+                    $sql .= ",'{$puntero->DateUpdate}','{$puntero->UomCode}','{$puntero->PriceAfVAT}', '{$puntero->OcrCode}','{$puntero->OcrCode2}' ,'{$puntero->WhsCode}','{$puntero->GTotal}','{$puntero->LineStatus}'";
+                    $sql .= "),";
+                }
+                $cadena = substr($sql, 0, -1);
+                $sql="INSERT INTO sapentregasdetalle {$campos} VALUES {$cadena};";
+                $db = Yii::$app->db; 
+                if($reg==0)
+                    Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE sapentregasdetalle;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+                Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;')->execute();
+                $db->createCommand($sql)->execute(); 
+                
+            }
+           // $this->insertLog2('sincroniza', 'entregas detalle', 'success');
+        } catch (\Exception $e) {
+            $this->insertLog2('sincroniza', 'entregas detalle', $e);
+        }
+        //Yii::error("SINCRONIZA ODBC: ".$respuesta);    
+    }
+	
+	   private function insertLog2($action, $parametros, $error) {
+        $sql = "INSERT INTO log_envio(idlog, proceso, envio, respuesta, fecha, ultimo, endpoint) VALUES 
+                (DEFAULT,'','" . $parametros . "','" . htmlentities($error, ENT_QUOTES) . "','" . Carbon::now() . "','','" . $action . "')";
+        Yii::$app->db->createCommand($sql)->execute();
+      }
+
+    private function remplaceString($string) {
+        if (!is_null($string)) {
+            $string=str_replace('\'', '`', $string);
+            $string=str_replace("'", '`', $string);
+            $string=str_replace('?', ' ', $string);
+            return $string;
+        }
+        return $string;
+    } 
+
+}

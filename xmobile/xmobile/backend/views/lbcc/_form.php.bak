@@ -1,0 +1,84 @@
+<?php
+
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+?>
+<div class="container-fluid">
+    <?php $form = ActiveForm::begin(['id' => 'Lbcc-form']); ?>
+    <div class="row">
+        <div class="col-md-6">  
+            <?= $form->field($model, 'U_NumeroAutorizacion')->textInput(['maxlength' => true]) ?>
+            <span class="text-danger text-clear" id="error-U_NumeroAutorizacion"></span>
+        </div> 
+        <div class="col-md-3">  
+            <?= $form->field($model, 'U_Estado')->dropDownList(['1' => 'Activo', '2' => 'Inactivo']); ?>
+            <span class="text-danger text-clear" id="error-U_Estado"></span>
+        </div> 
+        <div class="col-md-3">   
+            <?php $arr = \yii\helpers\ArrayHelper::map(backend\models\Tipopapel::find()->all(), 'id', 'nombre'); ?>
+            <?= $form->field($model, 'papelId')->dropDownList($arr, ['prompt' => '']); ?>
+            <span class="text-danger text-clear" id="error-papelId"></span>
+        </div> 
+    </div> 
+    <div class="row">
+        <div class="col-md-4">   
+            <?= $form->field($model, 'U_PrimerNumero')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_PrimerNumero"></span>
+        </div> 
+        <div class="col-md-4">   
+            <?= $form->field($model, 'U_NumeroSiguiente')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_NumeroSiguiente"></span>
+        </div> 
+        <div class="col-md-4"> 
+            <?= $form->field($model, 'U_UltimoNumero')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_UltimoNumero"></span>
+        </div> 
+    </div> 
+    <div class="row">
+        <div class="col-md-4">  
+            <?php $arrx = \yii\helpers\ArrayHelper::map(backend\models\Series::find()->where(['Document' => 13])->all(), 'Series', 'Name'); ?>
+            <?= $form->field($model, 'U_Series')->dropDownList($arrx, ['prompt' => '']); ?>
+            <?= $form->field($model, 'U_SeriesName')->hiddenInput(['maxlength' => true])->label(false); ?>
+            <span class="text-danger text-clear" id="error-U_Series"></span>
+        </div>
+        <div class="col-md-5">   
+            <?= $form->field($model, 'U_Actividad')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_Actividad"></span>
+        </div> 
+        <div class="col-md-3">  
+            <?= $form->field($model, 'U_FechaLimiteEmision')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_FechaLimiteEmision"></span>
+        </div> 
+    </div> 
+    <div class="row">
+        <div class="col-md-6">   
+            <?= $form->field($model, 'U_LlaveDosificacion')->textInput(['maxlength' => true]) ?>
+            <span class="text-danger text-clear" id="error-U_LlaveDosificacion"></span>
+        </div> 
+        <div class="col-md-6"> 
+            <?= $form->field($model, 'U_Leyenda')->textInput() ?>
+            <span class="text-danger text-clear" id="error-U_Leyenda"></span>
+        </div> 
+    </div> 
+    <div class="row">
+        <div class="col-md-6">   
+            <?= $form->field($model, 'equipoId')->hiddenInput(['value' => Yii::$app->session->get('IDEQUIPO')])->label(false); ?>
+            <span class="text-danger text-clear" id="error-equipoId"></span>
+        </div>       
+    </div>
+    <?php if ($grupoCliente == true && $grupoProducto == true) { ?>
+        <div class="row">
+            <div class="col-md-6">   
+                <?php $arrx = \yii\helpers\ArrayHelper::map(backend\models\Clientesgrupo::find()->all(), 'Code', 'Name'); ?>
+                <?= $form->field($model, 'U_GrupoCliente')->dropDownList($arrx, ['prompt' => '']); ?>
+                <span class="text-danger text-clear" id="error-U_GrupoCliente"></span>
+            </div>        
+            <div class="col-md-6">   
+                <?php $arrx = \yii\helpers\ArrayHelper::map(backend\models\Productosgrupo::find()->all(), 'Number', 'GroupName'); ?>
+                <?= $form->field($model, 'U_GrupoProducto')->dropDownList($arrx, ['prompt' => '']); ?>
+                <span class="text-danger text-clear" id="error-U_GrupoProducto"></span>
+            </div>
+        </div>
+    <?php } ?>
+    <?php ActiveForm::end(); ?>
+</div>

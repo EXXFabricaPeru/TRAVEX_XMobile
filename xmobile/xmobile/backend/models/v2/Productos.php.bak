@@ -1,0 +1,558 @@
+<?php
+
+namespace backend\models\v2;
+
+use Exception;
+use stdClass;
+use Yii;
+use Carbon\Carbon;
+use yii\base\Model;
+use backend\models\hana;
+class Productos extends Model {
+    private $hana;
+    public function __construct() {
+        $this->hana=New hana;
+    }
+    // funciones Maestro de Productos
+    public function obtenerTodosProductos($equipo,$texto,$almacen){
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductos();        
+        $from=' from "OITM" P LEFT JOIN  "OITB" PG ON P."ItmsGrpCod"=PG."ItmsGrpCod"';
+        
+        $where=$this->obtenerCondicionConsulta($usuario,$almacen,$texto);
+        $order='order by P."ItemCodeCode"';        
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ";
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    public function obtenerProductos($equipo,$usuario,$salto=0,$limite=1000){
+        if($salto==""){
+            $salto=0;
+        }
+        if($limite==""){
+            $limite=1000;
+        }
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductos();        
+        $from=' from "OITM" P LEFT JOIN  "OITB" PG ON  P."ItmsGrpCod"=PG."ItmsGrpCod"';
+        $where=$this->obtenerCondicionConsulta($equipo,$usuario);
+        $order='order by P."ItemCode"';
+        $limite=" limit ".$limite." OFFSET ".$salto;
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ".$limite;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        Yii::error(json_encode($resultado));
+        return $resultado;
+    }
+    private function obtenerVariablesSTD(){
+            $cadena="";
+            $sql = "SELECT * FROM configuracion WHERE parametro LIKE 'producto_std%'  ORDER BY id";
+            $parametrosProductos = Yii::$app->db->createCommand($sql)->queryAll();
+            $cantidadProducto = count($parametrosProductos);
+
+            if (count($cantidadProducto)){
+                for ($c = 0; $c < $cantidadProducto; $c++){
+                    if($parametrosProductos[$c]["estado"]==1){
+                        $cadena.= ',"'.$parametrosProductos[$c]["valor2"].'" as "'.$parametrosProductos[$c]["parametro"].'"';
+                    }else{
+                        $cadena.= ',0 as "'.$parametrosProductos[$c]["parametro"].'"';
+                    }
+                        
+                }
+            }
+            Yii::error("Varibles std ".$cadena);
+            return $cadena;
+    }
+    private function obtenerCamposConsultaProductos(){
+        $aux_variablesStd=$this->obtenerVariablesSTD();
+        $sql='
+        P."ItemCode",
+        P."ItemName",
+        P."ItmsGrpCod" as "ItemsGroupCode",
+        P."FrgnName" as "ForeignName",
+        P."CstGrpCode" as "CustomsGroupCode",
+        P."CodeBars" as "BarCode",
+        P."PrchseItem" as "PurchaseItem",
+        P."SellItem" as "SalesItem",
+        P."InvntItem" as "InventoryItem",
+        P."SerialNum",
+        P."OnHand" as "QuantityOnStock",
+        P."OnOrder" as "QuantityOrderedFromVendors",
+        P."IsCommited" as "QuantityOrderedByCustomers", 
+        CASE  when P."ManSerNum"=\'Y\' then 1 else 0 end  as "ManageSerialNumbers",
+        CASE  when P."ManBtchNum"=\'Y\' then 1 else 0 end  as "ManageBatchNumbers",
+        P."SalUnitMsr" as "SalesUnit",
+        P."SLength1" as "SalesUnitLength",
+        P."SWidth1" as "SalesUnitWidth",
+        P."BHeight1" as "SalesUnitHeight",
+        P."SVolume" as "SalesUnitVolume",
+        P."BuyUnitMsr" as "PurchaseUnit",
+        P."DfltWH" as "DefaultWarehouse",
+        P."ByWh" as "ManageStockByWarehouse",
+        P."EnAstSeri" as "ForceSelectionOfSerialNumber",
+        P."Series",
+        P."UgpEntry" as "UoMGroupEntry",
+        P."SUoMEntry" as "DefaultSalesUoMEntry",
+        \'0\' as "User",
+        \'0\' as "Status",
+        to_date(P."UpdateDate") as "DateUpdate",
+        P."FirmCode" as "Manufacturer",
+        P."NoDiscount" as "NoDiscounts",
+        to_date(P."CreateDate") as "created_at",
+        to_date(P."UpdateDate") as "updated_at",
+        P."TreeType" as "combo",
+        PG."ItmsGrpNam" as "GroupName",
+        \'0\' as "priceListNoms",
+        \'0\' as "priceListNames",
+        \'0\' as "almacenes",
+        \'0\' AS grupoSIN,
+		\'0\' AS iva,
+		\'0\' AS DescuentoG,
+		\'0\' AS DescuentoC,
+		\'0\' AS DescuentoCC,
+		\'0\' AS DescuentoA
+        ';
+        $sql.=$aux_variablesStd;
+        return $sql;
+    }
+    private function obtenerCondicionConsulta($equipo,$usuario,$texto=''){
+        $configuracion_tipo_vendedor_sql="Select * from sys_vi_cnf_usuario where id=".$usuario;
+        $configuracion_tipo_vendedor = Yii::$app->db->createCommand($configuracion_tipo_vendedor_sql)->queryOne();
+        $aux_cnfu_vs=$configuracion_tipo_vendedor["validarStock"];
+        //$cadena=" WHERE (\"TreeType\"='N' or \"InvntItem\"='N') and \"SellItem\"='Y' "; solo productos que no son inventariables y no combos
+        $cadena=" WHERE  P.\"SellItem\"='Y' and P.\"ItemName\" is not null";
+        switch ($aux_cnfu_vs){
+                case 0:                   
+                    $cadena.=' ';
+                break;
+                case 1:                
+                    $cadena.=' and P."OnHand">0 ';
+                break;               
+    
+            }
+        if($texto!=''){
+            $cadena.= ' and  (P."ItemCode" like \'%'.$texto.'%\' or P."ItemName" like \'%'.$texto.'%\')'; 
+        }
+        return $cadena;
+
+    }
+    public function obtenerProductosContador($equipo,$usuario){        
+        $sql=" Select ";
+        $campos=' Count(*) as "contador" ';        
+        $from=" from \"OITM\" P";
+        $where=$this->obtenerCondicionConsulta($equipo,$usuario);
+        $sql_hana=$sql." ". $campos." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaOne($sql_hana);
+        return $resultado;
+    }
+
+    // funciones  Productos Almacenes
+    public function obtenerProductosAlmacenesTodos($equipo,$texto,$almacen){
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosAlmacenes($equipo);        
+        $from=' from "OITW" PA ';
+        $from.=' left join "OITM" P on PA."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosAlmacenes($equipo,$almacen,$texto);
+        $order='order by PA."ItemCode",PA."WhsCode" ';        
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    public function obtenerProductosAlmacenes($equipo,$usuario,$salto=0,$limite=0){
+        if($salto==""){
+            $salto=0;
+        }
+        if($limite==""){
+            $limite=1000;
+        }
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosAlmacenes();        
+        $from=' FROM  "OITW" PA  ';
+        $from.=' left join "OITM" P on PA."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosAlmacenes($equipo);
+        $order='order by PA."ItemCode",PA."WhsCode" ';
+        $limite=" limit {$limite} OFFSET {$salto}";
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ".$limite;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    private function obtenerCondicionConsultaProductosAlmacenes($equipo,$almacen='',$texto=''){
+        $cnf_equipo_sql="select GROUP_CONCAT(whs) as whs from sys_vi_equiposalmacenes where equipouid='".$equipo."' group by equipoid" ;
+        $cnf_equipo = Yii::$app->db->createCommand($cnf_equipo_sql)->queryOne();
+        $aux_cnfe_whs=$cnf_equipo["whs"];
+        //$cadena=" WHERE (\"TreeType\"='N' or \"InvntItem\"='N') and \"SellItem\"='Y' "; solo productos que no son inventariables y no combos
+        $cadena=" ";
+
+        if($almacen!=''){
+            $cadena=' where PA."WhsCode"=\''.$almacen.'\' ';
+        }else{
+             $cadena=" where PA.\"WhsCode\" in(".$aux_cnfe_whs.")";
+        }
+        if($texto!=''){
+            $cadena.= ' and  (PA."ItemCode" like \'%'.$texto.'%\' or P."ItemName" like \'%'.$texto.'%\' or PA."WhsCode" like \'%'.$texto.'%\')'; 
+        }
+        return $cadena;
+
+    }
+    private function obtenerCamposConsultaProductosAlmacenes(){
+        $hoy=Date('Y-m-d');
+        $sql='
+        PA."ItemCode",
+        PA."WhsCode" as "WarehouseCode",
+        (PA."OnHand") as "InStock" ,
+        PA."IsCommited" as "Committed",
+        PA."Locked",
+        PA."OnOrder" as "Ordered",
+        1 as "User",
+        1 as "Status", 
+        \''.$hoy.'\' as "DateUpdate"         
+        ';
+        return $sql;
+    }
+    public function obtenerProductosAlmacenesContador($equipo){        
+        $sql=' Select  Count(*) as "contador" ';              
+        $from=' from "OITW" PA ';        
+        $where=$this->obtenerCondicionConsultaProductosAlmacenes($equipo);       
+        $sql_hana=$sql." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaOne($sql_hana);
+        return $resultado;
+    }
+
+    // funciones  Productos Precios
+    public function obtenerProductosPreciosTodos($usuario,$texto,$lista){
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosPrecios();        
+        $from=' from "EXX_XM_ProductosPreciosSap" PP ';
+        $from.=' left join "OITM" P on PP."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosPrecios($usuario,$lista,$texto);
+        $order=' order by PP."ItemCode",PP."PriceList" ';        
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    public function obtenerProductosPrecios($usuario,$salto=0,$limite=1000){
+        if($salto==""){
+            $salto=0;
+        }
+        if($limite==""){
+            $limite=1000;
+        }
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosPrecios();        
+        $from=' from "EXX_XM_ProductosPreciosSap" PP ';
+        $from.=' left join "OITM" P on PP."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosPrecios($usuario);
+        $order=' order by PP."ItemCode",PP."PriceList" ';
+        $limite=" limit {$limite} OFFSET {$salto}";
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ".$limite;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    private function obtenerCondicionConsultaProductosPrecios($usuario,$lista='',$texto=''){
+        $cnf_gnl_sql="select valor from configuracion where parametro='listapreciosSAP' " ;
+        $cnf_gnl = Yii::$app->db->createCommand($cnf_gnl_sql)->queryOne();
+        $aux_cnf=$cnf_gnl["valor"];
+
+        $cnf_usuario_sql="select GROUP_CONCAT(idlistaprecios) as lpu from listapreciosuser where user_id=".$usuario." group by user_id" ;
+        $cnf_usuario = Yii::$app->db->createCommand($cnf_usuario_sql)->queryOne();
+        $aux_cnfu_lp=$cnf_usuario["lpu"];
+        $cadena=" ";
+        $cadena=' where  "Price" >0';
+
+        if($lista!=''){
+            $cadena.=' and PP."PriceList"=\''.$lista.'\' ';
+        }else{
+            if($aux_cnf==1){
+
+                $sql_aux_cnf_territorios="select GROUP_CONCAT(idTerritorio) as territorios from usuariomovilterritoriodetalle where idUserMovil=".$usuario." group by idUserMovil" ;
+                    $aux_cnf_territorios = Yii::$app->db->createCommand($sql_aux_cnf_territorios)->queryOne();
+                    $aux_cnfu_trr=$aux_cnf_territorios["territorios"];
+                $cadena.=" and PP.\"PriceList\" in( select distinct \"ListNum\" from \"OCRD\" where \"Territory\" in(".$aux_cnfu_trr."))";
+                //$cadena.=" and PP.\"PriceList\" in(".$aux_cnfu_lp.")";
+            }else{
+                $cadena.=" and PP.\"PriceList\" in(".$aux_cnfu_lp.")";
+            }
+             
+        }
+        if($texto!=''){
+            $cadena.= ' and  (PP."ItemCode" like \'%'.$texto.'%\' or P."ItemName" like \'%'.$texto.'%\' or PP."PriceList" like \'%'.$texto.'%\')'; 
+        }
+
+        return $cadena;
+
+    }
+    private function obtenerCamposConsultaProductosPrecios(){
+        $hoy=Date('Y-m-d');
+        $sql='
+            PP."ItemCode",
+            PP."PriceList" as "IdListaPrecios",
+            PP."UomEntry" as "IdUnidadMedida",
+            PP."Price",
+            PP."Currency",
+            1 as "User",
+            1 as "Status",
+            \''.$hoy.'\' as "DateUpdate",
+            PP."AddPrice1",
+            PP."Currency1",
+            PP."AddPrice2",
+            PP."Currency2",
+            PP."UgpEntry",
+            PP."UomCode" as "Code",
+            PP."UomName" as "Name",
+            PP."BaseQty",
+            PP."ListName" as "PriceListName",
+            PP."PriceList" as "PriceListNo"           
+        ';
+        return $sql;
+    }
+    public function obtenerProductosPreciosContador($usuario){        
+        $sql=' Select  Count(*) as "contador" ';              
+        $from=' from "EXX_XM_ProductosPreciosSap" PP';
+        $where=$this->obtenerCondicionConsultaProductosPrecios($usuario);       
+        $sql_hana=$sql." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaOne($sql_hana);
+        return $resultado;
+    }
+    // funciones Productos Lotes
+    public function obtenerProductosLotesTodos($equipo,$usuario,$texto,$almacen,$lote){
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosLotes();        
+        $from=' from "EXX_XM_LotesProductos" PL ';
+        $from.=' left join "OITM" P on PL."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosLotes($equipo,$almacen,$lote,$texto);
+        $order=' order by PL."ItemCode",PL."WhsCode",PL."BatchNum" ';        
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    public function obtenerProductosLotes($equipo,$usuario,$salto=0,$limite=1000){
+        if($salto==""){
+            $salto=0;
+        }
+        if($limite==""){
+            $limite=1000;
+        }
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosLotes();        
+        $from=' from "EXX_XM_LotesProductos" PL ';
+        $from.=' left join "OITM" P on PL."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosLotes($equipo);
+        $order=' order by PL."ItemCode",PL."WhsCode",PL."BatchNum" ';
+        $limite=" limit {$limite} OFFSET {$salto}";
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ".$limite;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    private function obtenerCondicionConsultaProductosLotes($equipo,$almacen='',$lote='',$texto=''){        
+        $cnf_equipo_sql="select GROUP_CONCAT(whs) as whs from sys_vi_equiposalmacenes where equipouid='".$equipo."' group by equipoid" ;
+        $cnf_equipo = Yii::$app->db->createCommand($cnf_equipo_sql)->queryOne();
+        $aux_cnfe_whs=$cnf_equipo["whs"];
+        //$cadena=" WHERE (\"TreeType\"='N' or \"InvntItem\"='N') and \"SellItem\"='Y' "; solo productos que no son inventariables y no combos
+        $cadena=' Where PL."Quantity" > 0 ';
+        if($almacen!=''){
+            $cadena.=' and PL."WhsCode"=\''.$almacen.'\' ';
+        }else{
+            $cadena.=" and PL.\"WhsCode\" in(".$aux_cnfe_whs.")";
+        }
+        if($texto!=''){
+            $cadena.= ' and  (PL."ItemCode" like \'%'.$texto.'%\' or P."ItemName" like \'%'.$texto.'%\' or PL."WhsCode" like \'%'.$texto.'%\')'; 
+        }
+        if($lote!=''){
+            $cadena.= ' and  (PL."BatchNum" like \'%'.$lote.'%\')'; 
+        }
+        return $cadena;
+
+    }
+    private function obtenerCamposConsultaProductosLotes(){
+        $sql='
+            PL."ItemCode",
+            PL."BatchNum",
+            PL."WhsCode",
+            PL."Quantity",
+            PL."Ingreso",
+            PL."Expira",
+            PL."BaseType",
+            PL."BaseEntry",
+            PL."BaseNum",
+            PL."BaseLinNum",
+            PL."Transfered",
+            PL."DataSource"           
+        ';
+        return $sql;
+    }
+    public function obtenerProductosLotesContador($equipo){        
+        //$sql=' Select  Count(*) as "contador"'; 
+        $sql=' Select 0 as "contador"';             
+        $from=' from "EXX_XM_LotesProductos" PL';
+        $where=$this->obtenerCondicionConsultaProductosLotes($equipo);       
+        $sql_hana=$sql." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaOne($sql_hana);
+        return $resultado;
+    }
+// funciones Productos Series
+    public function obtenerProductosSeriesTodos($equipo,$usuario,$texto,$almacen,$serie){
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosSeries();        
+        $from=' from "EXX_XM_SeriesProductos" PS ';
+        $from.=' left join "OITM" P on PS."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosSeries($equipo,$almacen,$serie,$texto);
+        $order=' order by PS."ItemCode",PS."WhsCode",PS."SerialNumber" ';        
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    public function obtenerProductosSeries($equipo,$usuario,$salto=0,$limite=1000){
+        if($salto==""){
+            $salto=0;
+        }
+        if($limite==""){
+            $limite=1000;
+        }
+        $sql=" Select ";
+        $campos=$this->obtenerCamposConsultaProductosseries();        
+        $from=' from "EXX_XM_SeriesProductos" PS ';
+        $from.=' left join "OITM" P on PS."ItemCode"=P."ItemCode"';
+        $where=$this->obtenerCondicionConsultaProductosSeries($equipo);
+        $order=' order by PS."ItemCode",PS."WhsCode",PS."SerialNumber" ';
+        $limite=" limit {$limite} OFFSET {$salto}";
+        $sql_hana=$sql." ". $campos." ".$from." ".$where." ".$order." ".$limite;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    private function obtenerCondicionConsultaProductosSeries($equipo,$almacen='',$serie='',$texto=''){
+        $cnf_equipo_sql="select GROUP_CONCAT(whs) as whs from sys_vi_equiposalmacenes where equipoid=".$equipo." group by equipoid" ;
+        $cnf_equipo = Yii::$app->db->createCommand($cnf_equipo_sql)->queryOne();
+        $aux_cnfe_whs=$cnf_equipo["whs"];
+        //$cadena=" WHERE (\"TreeType\"='N' or \"InvntItem\"='N') and \"SellItem\"='Y' "; solo productos que no son inventariables y no combos
+        $cadena='';
+        if($almacen!=''){
+            $cadena.=' Where PS."WhsCode"=\''.$almacen.'\' ';
+        }else{
+            $cadena.=" Where  PS.\"WhsCode\" in(".$aux_cnfe_whs.")";
+        }
+        if($texto!=''){
+            $cadena.= ' and  (PS."ItemCode" like \'%'.$texto.'%\' or P."ItemName" like \'%'.$texto.'%\' or PS."WhsCode" like \'%'.$texto.'%\')'; 
+        }
+        if($serie!=''){
+            $cadena.= ' and  (PS."SerialNumber" like \'%'.$serie.'%\' or PS."SystemNumber" like \'%'.$serie.'%\' )'; 
+        }
+        return $cadena;
+
+    }
+    private function obtenerCamposConsultaProductosSeries(){
+        $sql='
+        PS."ItemCode",
+        PS."SystemNumber",
+        PS."WhsCode",
+        PS."SerialNumber",
+        PS."AdmissionDate",
+        PS."Status",
+        PS."User",
+        PS."DocEntry",
+        PS."N"            
+        ';
+        return $sql;
+    }
+    public function obtenerProductosSeriesContador($equipo){        
+        $sql=" Select  Count(*) as Contador ";              
+        $from=' from "EXX_XM_SeriesProductos" PS';
+        $where=$this->obtenerCondicionConsultaProductosSeries($equipo);       
+        $sql_hana=$sql." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaAll($sql_hana);
+        return $resultado;
+    }
+    /// vistas para productos
+    public function crearvistaseries(){
+        $sql='CREATE VIEW "EXX_XM_SeriesProductos"  AS SELECT
+            "C"."ItemCode" ,
+            "C"."SystemNumber" ,
+            "C"."WhsCode" ,
+            "C"."SerialNumber" ,
+            "C"."AdmissionDate" ,
+            "C"."Status" ,
+            "C"."User" ,
+            "C"."DocEntry" ,
+            "C"."N" 
+        FROM (select
+            P."ItemCode",
+            P."SystemNumber",
+            P."WhsCode",
+            P."SerialNumber",
+            P."AdmissionDate",
+            1 as "Status",
+            P."User",
+            P."DocEntry",
+            COUNT(P."SystemNumber") AS "N" 
+        FROM (SELECT
+            T0."ItemCode",
+            T0."SysNumber" as "SystemNumber",
+            T0."DistNumber" as "SerialNumber",
+            TO_Date(T0."InDate") as "AdmissionDate",
+            1 as "Status",
+            T0."UserSign" as "User",
+            T0."AbsEntry" as "DocEntry",
+            T2."LocCode" as "WhsCode" 
+            FROM "OSRN" T0 
+            inner join "ITL1" T1 on T1."SysNumber" = T0."SysNumber" 
+            and T1."ItemCode" = T0."ItemCode" 
+            inner join "OITL" T2 on T1."LogEntry" = T2."LogEntry" 
+            where T0."DistNumber" not in ( SELECT
+            T0."DistNumber" 
+                FROM "OSRN" T0 
+                inner join "ITL1" T1 on T1."SysNumber" = T0."SysNumber" 
+                and T1."ItemCode" = T0."ItemCode" 
+                inner join "OITL" T2 on T1."LogEntry" = T2."LogEntry" 
+                where T2."DocType" in (15,
+        13,
+        60) 
+        ) 
+        ) as P 
+        GROUP BY P."ItemCode",
+            P."SystemNumber",
+            P."WhsCode",
+        P."SerialNumber",
+        P."AdmissionDate",
+        P."User",
+        P."DocEntry",
+        "Status") AS C 
+            WHERE C."N" = 1';
+    }
+    public function crearvistalotes(){
+       
+       $sql=' CREATE VIEW "EXX_XM_LotesProductos" ( "ItemCode",
+        "BatchNum",
+        "WhsCode",
+        "Quantity",
+        "Ingreso",
+        "Expira",
+        "BaseType",
+        "BaseEntry",
+        "BaseNum",
+        "BaseLinNum",
+        "Transfered",
+        "DataSource" ) AS sELECT
+        "ItemCode",
+        "BatchNum",
+        "WhsCode",
+        Case when "IsCommited" >= 0 then ("Quantity"-"IsCommited") else "Quantity" end "Quantity" ,
+        TO_DATE(TO_VARCHAR ("InDate",\'YYYY-MM-DD\')) as "Ingreso",
+        TO_DATE(TO_VARCHAR ("ExpDate", \'YYYY-MM-DD\')) as "Expira",
+        "BaseType",
+        "BaseEntry",
+        "BaseNum",
+        "BaseLinNum",
+        "Transfered",
+        "DataSource" 
+        from "OIBT" 
+        WHERE ((CAST ("Quantity" AS INTEGER)-CAST ("IsCommited" AS INTEGER))>0 
+            OR "IsCommited" is null )';
+    }
+
+    // Consultas adicionales
+    public function obtenerCamposEspecificos($campos,$where){        
+        $sql=" Select ";       
+        $from=" from \"OITM\" P";
+        $sql_hana=$sql." ". $campos." ".$from." ".$where;
+        $resultado=  $this->hana->ejecutarconsultaOne($sql_hana);
+        return  $resultado;
+    }
+}

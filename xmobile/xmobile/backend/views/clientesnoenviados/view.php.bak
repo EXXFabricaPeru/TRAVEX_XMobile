@@ -1,0 +1,82 @@
+<?php
+
+use yii\helpers\Html;
+use yii\widgets\DetailView;
+
+/* @var $this yii\web\View */
+/* @var $model backend\models\Clientes */
+
+$this->title = $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Clientes', 'url' => ['index']];
+$this->params['breadcrumbs'][] = $this->title;
+\yii\web\YiiAsset::register($this);
+?>
+<div class="clientes-view">
+
+    <h1><?= Html::encode($this->title) ?></h1>
+
+    <p>
+        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a('Delete', ['delete', 'id' => $model->id], [
+            'class' => 'btn btn-danger',
+            'data' => [
+                'confirm' => 'Are you sure you want to delete this item?',
+                'method' => 'post',
+            ],
+        ]) ?>
+    </p>
+
+    <?= DetailView::widget([
+        'model' => $model,
+        'attributes' => [
+            'id',
+            'CardCode',
+            'CardName',
+            'CardType',
+            'Address',
+            'CreditLimit',
+            'MaxCommitment',
+            'DiscountPercent',
+            'PriceListNum',
+            'SalesPersonCode',
+            'Currency',
+            'County',
+            'Country',
+            'CurrentAccountBalance',
+            'NoDiscounts',
+            'PriceMode',
+            'FederalTaxId',
+            'PhoneNumber',
+            'ContactPerson',
+            'PayTermsGrpCode',
+            'Latitude',
+            'Longitude',
+            'GroupCode',
+            'User',
+            'Status',
+            'DateUpdate',
+            'GroupName',
+            'U_XM_DosificacionSocio',
+            'Territory',
+            'DiscountRelations',
+            'Mobilecod',
+            'StatusSend',
+            'CardForeignName',
+            'Phone2',
+            'Cellular',
+            'EmailAddress:email',
+            'MailAdress',
+            'Properties1',
+            'Properties2',
+            'Properties3',
+            'Properties4',
+            'Properties5',
+            'Properties6',
+            'Properties7',
+            'FreeText',
+            'img',
+            'Industry',
+        ],
+    ]) ?>
+
+</div>

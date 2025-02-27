@@ -1,0 +1,106 @@
+<?php
+
+namespace api\controllers;
+
+use yii;
+use yii\rest\ActiveController;
+use backend\models\Servislayer;
+use yii\filters\auth\QueryParamAuth;
+use api\traits\Respuestas;
+use backend\models\Descuentosespecialessap;
+use backend\models\Usuariosincronizamovil;
+
+class DescuentosespecialessapController extends ActiveController {
+
+    use Respuestas;
+
+    public $modelClass = 'backend\models\Usuario';
+
+    /* public function init()
+      {
+      parent::init();
+      \Yii::$app->user->enableSession = false;
+      }
+
+      public function behaviors()
+      {
+      $behaviors = parent::behaviors();
+      $behaviors['authenticator'] = [
+      'tokenParam' => 'access-token',
+      'class' => QueryParamAuth::className(),
+      ];
+      return $behaviors;
+      } */
+
+    protected function verbs() {
+        return [
+            //'index' => ['GET', 'HEAD'],
+            //'view' => ['GET', 'HEAD'],
+            'index' => ['POST'],
+             'view' => ['POST'],
+            'create' => ['POST'],
+            'update' => ['PUT', 'PATCH'],
+            'delete' => ['DELETE'],
+        ];
+    }
+
+    public function actions() {
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['view']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        return $actions;
+    }
+
+    public function actionIndex() {
+        $usuario=Yii::$app->request->post('usuario');
+        $salto=Yii::$app->request->post('pagina');
+        $resultado = Yii::$app->db->createCommand("select * from vi_descuentosEspecialesSap order by cardcode limit 1000 OFFSET {$salto}")->queryAll();
+        /*$respuesta = Yii::$app->db->createCommand('CALL pa_obtenerDescuentosEspecialesSap(:cliente,:item)')
+                ->bindValue(':cliente', Yii::$app->request->post('CardCode'))
+                ->bindValue(':item', Yii::$app->request->post('ItemCode'))
+                ->queryAll();*/
+        //$respuesta = Descuentosespecialessap::find()->asArray()->all();
+                     /*->bindValue(':usuario', $usuario)
+                     ->bindValue(':inicial', $finicial)
+                     ->bindValue(':final', $ffinal)
+                     ->queryAll();*/
+        if (count($resultado)){
+            return $this->correcto($resultado);
+        }
+        return $this->error('Sin datos',201);
+    }
+	
+	public function actionTodossinfiltro() {   
+    }
+
+    public function actionCreate() {
+        $usuario=Yii::$app->request->post('usuario');
+        $salto=Yii::$app->request->post('pagina');
+        $resultado = Yii::$app->db->createCommand("select * from vi_descuentosEspecialesSap order by cardcode limit 1000 OFFSET {$salto}")->queryAll();
+
+        /*
+        $resultado = Yii::$app->db->createCommand('CALL pa_obtenerDescuentosEspecialesSap(:cliente,:item)')
+                ->bindValue(':cliente', '')
+                ->bindValue(':item', '')
+                ->queryAll();*/
+
+        if (count($resultado)){
+            return $this->correcto($resultado);
+        }
+        return $this->error('Sin datos',201);
+    }
+
+    public function actionContador(){
+        $usuario=Yii::$app->request->post('usuario');
+        $resultado=Yii::$app->db->createCommand("Select count(*) as contador from descuentosespecialessap")->queryOne();
+        
+
+        $usuariosincronizamovil= new Usuariosincronizamovil();
+        $usuariosincronizamovil->actionUsuarioSincronizaMovil(Yii::$app->request->post(),'Documentosespecialessap');
+        return $this->correcto($resultado, 'OK'); 
+    }
+
+}

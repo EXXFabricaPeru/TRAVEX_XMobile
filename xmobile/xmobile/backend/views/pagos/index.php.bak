@@ -1,0 +1,138 @@
+<?php
+
+use yii\helpers\Html;
+use yii\grid\GridView;
+use yii\widgets\Pjax;
+use yii\helpers\ArrayHelper;
+/* @var $this yii\web\View */
+/* @var $searchModel backend\models\PagosSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
+$this->title = Yii::t('app', 'Pagos');
+$this->params['breadcrumbs'][] = $this->title;
+?>
+<div class="pagos-index">
+    <div id="windowEliminar" style="display: none"> <br/><br/>
+        <p class="text-center"><b>Esta seguro de autorizar la anulación del registro?</b></p>
+    </div>
+
+    <h1><?= Html::encode($this->title) ?></h1>
+
+    <p>
+        <?php Html::a(Yii::t('app', 'Create Pagos'), ['create'], ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <?php Pjax::begin(); ?>
+    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        'filterModel' => $searchModel,
+        'columns' => [
+            [
+                'header'=>'EST',
+                'format' => 'raw',
+                'value'=>function($data){
+                    if($data->estadoEnviado == 1){
+                        return '<span class="label label-success">Sap</span>';
+                    }
+                    else if($data->estadoEnviado == 0){
+                        return '<span class="label label-warning">Midd</span>';
+                    }
+                    else if($data->estadoEnviado == 9){
+                        return '<span class="label label-danger">Cancel</span>';
+                    }
+                    else {
+                        return '<span class="label label-danger">Elim</span>';
+                    }
+                }
+            ],
+            //['class' => 'yii\grid\SerialColumn'],
+
+            //'id',
+            'documentoId',
+            'recibo',
+           // 'clienteId',
+            'formaPago',            
+           // 'tipoCambioDolar',
+            //'moneda',
+            'monto',
+            //'numCheque',
+            //'numComprobante',
+            //'numTarjeta',
+            //'numAhorro',
+            //'numAutorizacion',
+            
+            //'ci',
+            'TransId',
+            'fecha',
+            //'hora',
+            //'estadoEnviado',
+            //'cambio',
+            //'monedaDolar',
+            //'bancoCode',
+            [
+                'attribute' => 'clienteId',
+                'format' => 'raw',
+                'filter' =>'',
+                'value' => function($data) {
+                    $datos = backend\models\Clientes::find()->where("CardCode='".$data->clienteId."'")->one();
+                    return $datos->CardName;
+                }
+            ],
+            [
+                'attribute' => 'otpp',
+                'format' => 'raw',
+                'filter' =>['1'=>'PAGO DE FACTURA','2'=>'PAGO POR COBRAR','3'=>'PAGO A CUENTA'],
+                'value' => function($data) {
+                    $mensaje="";
+                    switch ($data->otpp) {
+                        case '1':
+                            $mensaje='PAGO DE FACTURA';
+                            break;
+                        case '2':
+                            $mensaje='PAGO POR COBRAR';
+                            break;
+                        case '3':
+                            $mensaje='PAGO A CUENTA';
+                            break;
+                        default:
+                            # code...
+                            break;
+                    }
+                    return $mensaje;
+                }
+            ],
+            [
+                'attribute' => 'usuario',
+                'format' => 'raw',
+                'filter' => ArrayHelper::map(backend\models\User::find()->orderby('username asc')->asArray()->all(), 'id', 'username'),
+                'value' => function($data) {
+                    $m = backend\models\User::findOne($data->usuario);
+                    return $m->username;
+                }
+            ], 
+            [
+                'attribute' => '',
+                'format' => 'raw',
+                'value' => function($data) {
+                    if($data->anulaAutorizado==1){
+                        return '';
+                    }
+                    else{
+                        return ''
+                        . '<button title="Autorizar anulación" class="btn-link btn-grid-action-autoriza" value="' . $data->id . '" ><i class="fas fa-trash-alt text-warning"></i></button> '
+                        . '';
+                    }
+                   
+                }
+            ],
+            ['class' => 'yii\grid\ActionColumn', 'template' => '{view}'],
+            //['class' => 'yii\grid\ActionColumn'],
+        ],
+    ]); ?>
+
+    <?php Pjax::end(); ?>
+
+</div>
+<?= $this->registerJsFile(Yii::getAlias('@web') . '/scripts/pagos.js', ['depends' => [yii\web\JqueryAsset::className()]]); ?>

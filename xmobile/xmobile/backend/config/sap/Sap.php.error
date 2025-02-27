@@ -1,0 +1,1400 @@
+<?php
+
+  namespace backend\models;
+
+  use Exception;
+  use stdClass;
+  use Yii;
+  use Carbon\Carbon;
+  use yii\base\Model;
+  use backend\models\Configlayer;
+  use backend\models\Servislayer;
+
+  class Sap extends Model
+  {
+
+    /**
+     * @var Servislayer $model
+     */
+    private $model;
+
+    public function __construct()
+    {
+      $this->model = new Servislayer();
+    }
+
+    public function almacenes()
+    {
+      $this->model->actiondir = 'Warehouses?$select=Street,WarehouseCode,State,Country,City,WarehouseName';
+      $almacenes = $this->model->executex();
+      $almacenes = $almacenes->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE almacenes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      foreach ($almacenes as $puntero) {
+        if (!is_null($puntero->WarehouseCode)) {
+          $almacen = new Almacenes();
+          $almacen->Street = $this->remplaceString($puntero->Street);
+          $almacen->WarehouseCode = $puntero->WarehouseCode;
+          $almacen->State = $this->remplaceString($puntero->State);
+          $almacen->Country = $this->remplaceString($puntero->Country);
+          $almacen->City = $this->remplaceString($puntero->City);
+          $almacen->WarehouseName = $this->remplaceString($puntero->WarehouseName);
+          $almacen->User = 1;
+          $almacen->Status = 1;
+          $almacen->DateUpdate = date('Y-m-d');
+          $almacen->save();
+          $ids .= $almacen->id;
+        }
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from almacenes')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function listasPrecios()
+    {
+      $this->model->actiondir = 'PriceLists?$select=GroupNum,BasePriceList,PriceListNo,PriceListName,DefaultPrimeCurrency';
+      $listaprecios = $this->model->executex();
+      $listaprecios = $listaprecios->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE listaprecios;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      foreach ($listaprecios as $puntero) {
+        if (!is_null($puntero->PriceListNo)) {
+          $xlistaprecios = new Listaprecios();
+          $xlistaprecios->GroupNum = $puntero->GroupNum;
+          $xlistaprecios->BasePriceList = $puntero->BasePriceList;
+          $xlistaprecios->PriceListNo = $puntero->PriceListNo;
+          $xlistaprecios->PriceListName = $puntero->PriceListName;
+          $xlistaprecios->DefaultPrimeCurrency = $puntero->DefaultPrimeCurrency;
+          $xlistaprecios->User = 1;
+          $xlistaprecios->Status = 1;
+          $xlistaprecios->DateUpdate = date('Y-m-d');
+          $xlistaprecios->save();
+          $ids .= $xlistaprecios->id;
+        }
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from listaprecios')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function unidadesMedida()
+    {
+      $this->model->actiondir = 'UnitOfMeasurements?$select=AbsEntry,Code,Name';
+      $unidadesMedidas = $this->model->executex();
+      $unidadesMedidas = $unidadesMedidas->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE unidadesmedida;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      foreach ($unidadesMedidas as $puntero) {
+        $unidadMedida = new Unidadesmedida();
+        $unidadMedida->AbsEntry = $puntero->AbsEntry;
+        $unidadMedida->Code = $puntero->Code;
+        $unidadMedida->Name = $puntero->Name;
+        $unidadMedida->User = 1;
+        $unidadMedida->Status = 1;
+        $unidadMedida->DateTime = date('Y-m-d');
+        $unidadMedida->save();
+        $ids .= $unidadMedida->id;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from unidadesmedida')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function vendedores()
+    {
+      $this->model->actiondir = 'SalesPersons?$select=SalesEmployeeCode,SalesEmployeeName,EmployeeID';
+      $vendedores = $this->model->executex();
+      $vendedores = $vendedores->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE vendedores;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      foreach ($vendedores as $puntero) {
+        $vendedores = new Vendedores();
+        $vendedores->SalesEmployeeCode = $puntero->SalesEmployeeCode;
+        $vendedores->SalesEmployeeName = $this->remplaceString($puntero->SalesEmployeeName);
+        $vendedores->EmployeeId = $puntero->EmployeeID;
+        $vendedores->User = 1;
+        $vendedores->Status = 1;
+        $vendedores->DateUpdate = date('Y-m-d');
+        $vendedores->save();
+        $ids .= $vendedores->id;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from vendedores')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function monedas()
+    {
+      $this->model->actiondir = 'Currencies?$select=Code,Name,DocumentsCode';
+      $monedas = $this->model->executex();
+      $monedas = $monedas->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE monedas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      $monedasSistema = Monedassistema::find()->one();
+      foreach ($monedas as $puntero) {
+        if (!is_null($puntero->Code)) {
+          $moneda = new Monedas();
+          $moneda->Code = $puntero->Code;
+          $moneda->Name = $puntero->Name;
+          $moneda->DocumentsCode = $puntero->DocumentsCode;
+          if ($puntero->Code == $monedasSistema->CurrencyLocal) {
+            $moneda->Type = 'L';
+          } else if ($puntero->Code == $monedasSistema->CurrencySystem) {
+            $moneda->Type = 'S';
+          } else {
+            $moneda->Type = 'O';
+          }
+          $moneda->User = 1;
+          $moneda->Status = 1;
+          $moneda->DateUpdate = date('Y-m-d');
+          $moneda->save();
+          $ids .= $moneda->id;
+        }
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from monedas')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function Lotes()
+    {
+      $this->model->actiondir = 'BatchNumberDetails?$select=ItemCode,ItemDescription,Status,Batch,AdmissionDate,ExpirationDate';
+      $lotes = $this->model->executex();
+      $lotes = $lotes->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE lotes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $ids = '';
+      foreach ($lotes as $puntero) {
+        $lote = new Lotes();
+        $lote->ItemCode = $puntero->ItemCode;
+        $lote->ItemDescription = $puntero->ItemDescription;
+        $lote->ItemStatus = $puntero->Status;
+        $lote->Batch = $puntero->Batch;
+        $lote->AdmissionDate = ($puntero->AdmissionDate != null) ? $puntero->AdmissionDate : null;
+        $lote->ExpirationDate = ($puntero->ExpirationDate != null) ? $puntero->ExpirationDate : null;
+        $lote->Stock = 0;
+        $lote->User = 1;
+        $lote->Status = 1;
+        $lote->DateUpdate = date('Y-m-d');
+        $lote->save(false);
+        $ids .= $lote->id;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from lotes')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function productos()
+    {
+      $this->model->actiondir = 'Items?$select=ItemCode,ItemName,ItemsGroupCode,ForeignName,CustomsGroupCode,BarCode,PurchaseItem,SalesItem,InventoryItem,User_Text,SerialNum,QuantityOnStock,QuantityOrderedFromVendors,QuantityOrderedByCustomers,ManageSerialNumbers,ManageBatchNumbers,SalesUnit,SalesUnitLength,SalesUnitWidth,SalesUnitHeight,SalesUnitVolume,PurchaseUnit,DefaultWarehouse,ManageStockByWarehouse,ForceSelectionOfSerialNumber,Series,UoMGroupEntry,DefaultSalesUoMEntry,ItemWarehouseInfoCollection,ItemPrices,InventoryUOM,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Properties8,Properties9,Properties10,Properties11,Properties12,Properties13,Properties14,Properties15,Properties16,Properties17,Properties18,Properties19,Properties20,Properties21,Properties22,Properties23,Properties24,Properties25,Properties26,Properties27,Properties28,Properties29,Properties30,Properties31,Properties32,Properties33,Properties34,Properties35,Properties36,Properties37,Properties38,Properties39,Properties40,Properties41,Properties42,Properties43,Properties44,Properties45,Properties46,Properties47,Properties48,Properties49,Properties50,Properties51,Properties52,Properties53,Properties54,Properties55,Properties56,Properties57,Properties58,Properties59,Properties60,Properties61,Properties62,Properties63,Properties64,Manufacturer,NoDiscounts&$filter=(QuantityOnStock gt 0)';
+      $cantidad = $this->model->countRows(0);
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productosalmacenes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productosprecios;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      for ($i= 0; $i <$cantidad;$i+=25){
+        $this->model->actiondir = 'Items?$select=ItemCode,ItemName,ItemsGroupCode,ForeignName,CustomsGroupCode,BarCode,PurchaseItem,SalesItem,InventoryItem,User_Text,SerialNum,QuantityOnStock,QuantityOrderedFromVendors,QuantityOrderedByCustomers,ManageSerialNumbers,ManageBatchNumbers,SalesUnit,SalesUnitLength,SalesUnitWidth,SalesUnitHeight,SalesUnitVolume,PurchaseUnit,DefaultWarehouse,ManageStockByWarehouse,ForceSelectionOfSerialNumber,Series,UoMGroupEntry,DefaultSalesUoMEntry,ItemWarehouseInfoCollection,ItemPrices,InventoryUOM,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Properties8,Properties9,Properties10,Properties11,Properties12,Properties13,Properties14,Properties15,Properties16,Properties17,Properties18,Properties19,Properties20,Properties21,Properties22,Properties23,Properties24,Properties25,Properties26,Properties27,Properties28,Properties29,Properties30,Properties31,Properties32,Properties33,Properties34,Properties35,Properties36,Properties37,Properties38,Properties39,Properties40,Properties41,Properties42,Properties43,Properties44,Properties45,Properties46,Properties47,Properties48,Properties49,Properties50,Properties51,Properties52,Properties53,Properties54,Properties55,Properties56,Properties57,Properties58,Properties59,Properties60,Properties61,Properties62,Properties63,Properties64,Manufacturer,NoDiscounts&$filter=(QuantityOnStock gt 0)&$skip='.$i;
+        $productos = $this->model->executex(25);
+        $productos = $productos->value;
+        $fecha = date("Y-m-d");
+        foreach ($productos as $puntero) {
+          $producto = new Productos();
+          $producto->ItemCode = $puntero->ItemCode;
+          $producto->ItemName = $this->remplaceString($puntero->ItemName);
+          $producto->ItemsGroupCode = $puntero->ItemsGroupCode;
+          $producto->ForeignName = $this->remplaceString($puntero->ForeignName);
+          $producto->CustomsGroupCode = $puntero->CustomsGroupCode;
+          $producto->BarCode = $puntero->BarCode;
+          $producto->PurchaseItem = $puntero->PurchaseItem;
+          $producto->SalesItem = $puntero->SalesItem;
+          $producto->InventoryItem = $puntero->InventoryItem;
+          $producto->UserText = $this->remplaceString($puntero->User_Text);
+          $producto->SerialNum = $puntero->SerialNum;
+          $producto->QuantityOnStock = $puntero->QuantityOnStock;
+          $producto->QuantityOrderedFromVendors = $puntero->QuantityOrderedFromVendors;
+          $producto->QuantityOrderedByCustomers = $puntero->QuantityOrderedByCustomers;
+          $producto->ManageSerialNumbers = $puntero->ManageSerialNumbers;
+          $producto->ManageBatchNumbers = $puntero->ManageBatchNumbers;
+          $producto->SalesUnit = $puntero->SalesUnit;
+          $producto->SalesUnitLength = $puntero->SalesUnitLength;
+          $producto->SalesUnitWidth = $puntero->SalesUnitWidth;
+          $producto->SalesUnitHeight = $puntero->SalesUnitHeight;
+          $producto->SalesUnitVolume = $puntero->SalesUnitVolume;
+          $producto->PurchaseUnit = $puntero->PurchaseUnit;
+          $producto->DefaultWarehouse = $puntero->DefaultWarehouse;
+          $producto->ManageStockByWarehouse = $puntero->ManageStockByWarehouse;
+          $producto->ForceSelectionOfSerialNumber = $puntero->ForceSelectionOfSerialNumber;
+          $producto->Series = $puntero->Series;
+          $producto->UoMGroupEntry = $puntero->UoMGroupEntry;
+          $producto->DefaultSalesUoMEntry = $puntero->DefaultSalesUoMEntry;
+          $producto->User = 1;
+          $producto->Status = 1;
+          $producto->DateUpdate = date("Y-m-d");
+          $this->productoPropiedad($puntero);
+          $producto->Manufacturer = $puntero->Manufacturer;
+          $producto->NoDiscounts = $puntero->NoDiscounts;
+          $producto->U_XM_ICEtipo = "N";
+          $producto->U_XM_ICEPorcentual = 0;
+          $producto->U_XM_ICEEspecifico = 0;
+          if (!$producto->save(false)) {
+            Yii::error(json_encode($producto));
+          }
+          $db = Yii::$app->db;
+          $sqlPA = '';
+          try {
+            $transaction = $db->beginTransaction();
+            foreach ($puntero->ItemWarehouseInfoCollection as $almacenProducto) {
+              $sqlPA .= "insert into productosalmacenes (ItemCode,WarehouseCode,InStock,Committed,Ordered,Locked,User,Status,DateUpdate) values('{$puntero->ItemCode}','{$almacenProducto->WarehouseCode}','{$almacenProducto->InStock}','{$almacenProducto->Committed}','{$almacenProducto->Ordered}','{$almacenProducto->Locked}',1,1,'{$fecha}');";
+            }
+            $db->createCommand($sqlPA)->execute();
+            $transaction->commit();
+          } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+          } catch (\Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+          }
+          foreach ($puntero->ItemPrices as $listaPrecio) {
+            if (count($listaPrecio->UoMPrices) > 0) {
+              foreach ($listaPrecio->UoMPrices as $unidadPrecio) {
+                $oListaPrecio = new Productosprecios();
+                $oListaPrecio->ItemCode = $puntero->ItemCode;
+                $oListaPrecio->IdListaPrecios = $this->idListaPrecio($unidadPrecio->PriceList);
+                $oListaPrecio->IdUnidadMedida = $this->idUnidadNumero($unidadPrecio->UoMEntry);
+                $oListaPrecio->Price = $unidadPrecio->Price;
+                $oListaPrecio->Currency = $unidadPrecio->Currency;
+                $oListaPrecio->User = 1;
+                $oListaPrecio->Status = 1;
+                $oListaPrecio->DateUpdate = date("Y-m-d");
+                $oListaPrecio->save();
+                if (intval($unidadPrecio->AdditionalPrice1) != 0 && !is_null($unidadPrecio->AdditionalCurrency1)) {
+                  $oListaPrecioAd = new Productosprecios();
+                  $oListaPrecioAd->ItemCode = $puntero->ItemCode;
+                  $oListaPrecioAd->IdListaPrecios = $this->idListaPrecio($unidadPrecio->PriceList);
+                  $oListaPrecioAd->IdUnidadMedida = $this->idUnidadNumero($unidadPrecio->UoMEntry);
+                  $oListaPrecioAd->Price = $unidadPrecio->AdditionalPrice1;
+                  $oListaPrecioAd->Currency = $unidadPrecio->AdditionalCurrency1;
+                  $oListaPrecioAd->User = 1;
+                  $oListaPrecioAd->Status = 1;
+                  $oListaPrecioAd->DateUpdate = date("Y-m-d");
+                  $oListaPrecioAd->save();
+                }
+                $db = Yii::$app->db;
+                $sqlPA = '';
+                try {
+                  $transaction = $db->beginTransaction();
+                  foreach ($puntero->ItemWarehouseInfoCollection as $almacenProducto) {
+                    $sqlPA .= "insert into productosalmacenes (ItemCode,WarehouseCode,InStock,Committed,Ordered,Locked,User,Status,DateUpdate) values('{$puntero->ItemCode}','{$almacenProducto->WarehouseCode}','{$almacenProducto->InStock}','{$almacenProducto->Committed}','{$almacenProducto->Ordered}','{$almacenProducto->Locked}',1,1,'{$fecha}');";
+                  }
+                  $db->createCommand($sqlPA)->execute();
+                  $transaction->commit();
+                } catch (\Exception $e) {
+                  $transaction->rollBack();
+                  throw $e;
+                } catch (\Throwable $e) {
+                  $transaction->rollBack();
+                  throw $e;
+                }
+              }
+            }  else {
+              $oListaPrecio = new Productosprecios();
+              $oListaPrecio->ItemCode = $puntero->ItemCode;
+              $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+              $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM : $puntero->SalesUnit;
+              $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+              $oListaPrecio->Price = $listaPrecio->Price;
+              $oListaPrecio->Currency = $listaPrecio->Currency;
+              $oListaPrecio->User = 1;
+              $oListaPrecio->Status = 1;
+              $oListaPrecio->DateUpdate = date("Y-m-d");
+              $oListaPrecio->save();
+              if (intval($listaPrecio->AdditionalPrice1) != 0 && !is_null($listaPrecio->AdditionalCurrency1)) {
+                $oListaPrecio = new Productosprecios();
+                $oListaPrecio->ItemCode = $puntero->ItemCode;
+                $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+                $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM : $puntero->SalesUnit;
+                $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+                $oListaPrecio->Price = $listaPrecio->AdditionalPrice1;
+                $oListaPrecio->Currency = $listaPrecio->AdditionalCurrency1;
+                $oListaPrecio->User = 1;
+                $oListaPrecio->Status = 1;
+                $oListaPrecio->DateUpdate = date("Y-m-d");
+                $oListaPrecio->save();
+              }
+              if (intval($listaPrecio->AdditionalPrice2) != 0 && !is_null($listaPrecio->AdditionalCurrency2)) {
+                $oListaPrecio = new Productosprecios();
+                $oListaPrecio->ItemCode = $puntero->ItemCode;
+                $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+                $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM : $puntero->SalesUnit;
+                $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+                $oListaPrecio->Price = $listaPrecio->AdditionalPrice2;
+                $oListaPrecio->Currency = $listaPrecio->AdditionalCurrency2;
+                $oListaPrecio->User = 1;
+                $oListaPrecio->Status = 1;
+                $oListaPrecio->DateUpdate = date("Y-m-d");
+                $oListaPrecio->save();
+              }
+            }
+          }
+        }
+      }
+    }
+public function productos2()
+    {
+      //$this->model->actiondir = 'Items?$select=ItemCode,ItemName,ItemsGroupCode,ForeignName,CustomsGroupCode,BarCode,PurchaseItem,SalesItem,InventoryItem,User_Text,SerialNum,QuantityOnStock,QuantityOrderedFromVendors,QuantityOrderedByCustomers,ManageSerialNumbers,ManageBatchNumbers,SalesUnit,SalesUnitLength,SalesUnitWidth,SalesUnitHeight,SalesUnitVolume,PurchaseUnit,DefaultWarehouse,ManageStockByWarehouse,ForceSelectionOfSerialNumber,Series,UoMGroupEntry,DefaultSalesUoMEntry,ItemWarehouseInfoCollection,ItemPrices,InventoryUOM,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Properties8,Properties9,Properties10,Properties11,Properties12,Properties13,Properties14,Properties15,Properties16,Properties17,Properties18,Properties19,Properties20,Properties21,Properties22,Properties23,Properties24,Properties25,Properties26,Properties27,Properties28,Properties29,Properties30,Properties31,Properties32,Properties33,Properties34,Properties35,Properties36,Properties37,Properties38,Properties39,Properties40,Properties41,Properties42,Properties43,Properties44,Properties45,Properties46,Properties47,Properties48,Properties49,Properties50,Properties51,Properties52,Properties53,Properties54,Properties55,Properties56,Properties57,Properties58,Properties59,Properties60,Properties61,Properties62,Properties63,Properties64,Manufacturer,NoDiscounts&$filter=contains(ItemCode, \'COMB\') ';
+       $this->model->actiondir = 'Items?$select=ItemCode,ItemName,ItemsGroupCode,ForeignName,CustomsGroupCode,BarCode,PurchaseItem,SalesItem,InventoryItem,User_Text,SerialNum,QuantityOnStock,QuantityOrderedFromVendors,QuantityOrderedByCustomers,ManageSerialNumbers,ManageBatchNumbers,SalesUnit,SalesUnitLength,SalesUnitWidth,SalesUnitHeight,SalesUnitVolume,PurchaseUnit,DefaultWarehouse,ManageStockByWarehouse,ForceSelectionOfSerialNumber,Series,UoMGroupEntry,DefaultSalesUoMEntry,ItemWarehouseInfoCollection,ItemPrices,InventoryUOM,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Properties8,Properties9,Properties10,Properties11,Properties12,Properties13,Properties14,Properties15,Properties16,Properties17,Properties18,Properties19,Properties20,Properties21,Properties22,Properties23,Properties24,Properties25,Properties26,Properties27,Properties28,Properties29,Properties30,Properties31,Properties32,Properties33,Properties34,Properties35,Properties36,Properties37,Properties38,Properties39,Properties40,Properties41,Properties42,Properties43,Properties44,Properties45,Properties46,Properties47,Properties48,Properties49,Properties50,Properties51,Properties52,Properties53,Properties54,Properties55,Properties56,Properties57,Properties58,Properties59,Properties60,Properties61,Properties62,Properties63,Properties64,Manufacturer,NoDiscounts&$filter=contains(ItemCode, \'ITM-000000\')';
+     
+	  $productos = $this->model->executex(30);
+      $productos = $productos->value;
+      //Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      //Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productosalmacenes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      //Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productosprecios;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $fecha = date("Y-m-d");
+      foreach ($productos as $puntero) {
+        $producto = new Productos();
+        $producto->ItemCode = $puntero->ItemCode;
+        $producto->ItemName = $this->remplaceString($puntero->ItemName);
+        $producto->ItemsGroupCode = $puntero->ItemsGroupCode;
+        $producto->ForeignName = $this->remplaceString($puntero->ForeignName);
+        $producto->CustomsGroupCode = $puntero->CustomsGroupCode;
+        $producto->BarCode = $puntero->BarCode;
+        $producto->PurchaseItem = $puntero->PurchaseItem;
+        $producto->SalesItem = $puntero->SalesItem;
+        $producto->InventoryItem = $puntero->InventoryItem;
+        $producto->UserText = $this->remplaceString($puntero->User_Text);
+        $producto->SerialNum = $puntero->SerialNum;
+        $producto->QuantityOnStock = $puntero->QuantityOnStock;
+        $producto->QuantityOrderedFromVendors = $puntero->QuantityOrderedFromVendors;
+        $producto->QuantityOrderedByCustomers = $puntero->QuantityOrderedByCustomers;
+        $producto->ManageSerialNumbers = $puntero->ManageSerialNumbers;
+        $producto->ManageBatchNumbers = $puntero->ManageBatchNumbers;
+        $producto->SalesUnit = $puntero->SalesUnit;
+        $producto->SalesUnitLength = $puntero->SalesUnitLength;
+        $producto->SalesUnitWidth = $puntero->SalesUnitWidth;
+        $producto->SalesUnitHeight = $puntero->SalesUnitHeight;
+        $producto->SalesUnitVolume = $puntero->SalesUnitVolume;
+        $producto->PurchaseUnit = $puntero->PurchaseUnit;
+        $producto->DefaultWarehouse = $puntero->DefaultWarehouse;
+        $producto->ManageStockByWarehouse = $puntero->ManageStockByWarehouse;
+        $producto->ForceSelectionOfSerialNumber = $puntero->ForceSelectionOfSerialNumber;
+        $producto->Series = $puntero->Series;
+        $producto->UoMGroupEntry = $puntero->UoMGroupEntry;
+        $producto->DefaultSalesUoMEntry = $puntero->DefaultSalesUoMEntry;
+        $producto->User = 1;
+        $producto->Status = 1;
+        $producto->DateUpdate = date("Y-m-d");
+        $this->productoPropiedad($puntero);
+        $producto->Manufacturer = $puntero->Manufacturer;
+        $producto->NoDiscounts = $puntero->NoDiscounts;
+        $producto->U_XM_ICEtipo = "N";
+        $producto->U_XM_ICEPorcentual = 0;
+        $producto->U_XM_ICEEspecifico = 0;
+        if(!$producto->save(false)){
+			Yii::error(json_encode($producto));
+		}
+        $db = Yii::$app->db;
+        $sqlPA = '';
+        try {
+          $transaction = $db->beginTransaction();
+          foreach ($puntero->ItemWarehouseInfoCollection as $almacenProducto) {
+            $sqlPA .= "insert into productosalmacenes (ItemCode,WarehouseCode,InStock,Committed,Ordered,Locked,User,Status,DateUpdate) values('{$puntero->ItemCode}','{$almacenProducto->WarehouseCode}','{$almacenProducto->InStock}','{$almacenProducto->Committed}','{$almacenProducto->Ordered}','{$almacenProducto->Locked}',1,1,'{$fecha}');";
+          }
+          $db->createCommand($sqlPA)->execute();
+          $transaction->commit();
+        } catch (\Exception $e) {
+          $transaction->rollBack();
+          throw $e;
+        } catch (\Throwable $e) {
+          $transaction->rollBack();
+          throw $e;
+        }
+        foreach ($puntero->ItemPrices as $listaPrecio) {
+          if (count($listaPrecio->UoMPrices) > 0) {
+            foreach ($listaPrecio->UoMPrices as $unidadPrecio) {
+              $oListaPrecio = new Productosprecios();
+              $oListaPrecio->ItemCode = $puntero->ItemCode;
+              $oListaPrecio->IdListaPrecios = $this->idListaPrecio($unidadPrecio->PriceList);
+              $oListaPrecio->IdUnidadMedida = $this->idUnidadNumero($unidadPrecio->UoMEntry);
+              $oListaPrecio->Price = $unidadPrecio->Price;
+              $oListaPrecio->Currency = $unidadPrecio->Currency;
+              $oListaPrecio->User = 1;
+              $oListaPrecio->Status = 1;
+              $oListaPrecio->DateUpdate = date("Y-m-d");
+              $oListaPrecio->save();
+              if (intval($unidadPrecio->AdditionalPrice1) != 0 && !is_null($unidadPrecio->AdditionalCurrency1)){
+                $oListaPrecioAd = new Productosprecios();
+                $oListaPrecioAd->ItemCode = $puntero->ItemCode;
+                $oListaPrecioAd->IdListaPrecios = $this->idListaPrecio($unidadPrecio->PriceList);
+                $oListaPrecioAd->IdUnidadMedida = $this->idUnidadNumero($unidadPrecio->UoMEntry);
+                $oListaPrecioAd->Price = $unidadPrecio->AdditionalPrice1;
+                $oListaPrecioAd->Currency = $unidadPrecio->AdditionalCurrency1;
+                $oListaPrecioAd->User = 1;
+                $oListaPrecioAd->Status = 1;
+                $oListaPrecioAd->DateUpdate = date("Y-m-d");
+                $oListaPrecioAd->save();
+              }
+              if (intval($unidadPrecio->AdditionalPrice2) != 0 && !is_null($unidadPrecio->AdditionalCurrency2)){
+                $oListaPrecio = new Productosprecios();
+                $oListaPrecio->ItemCode = $puntero->ItemCode;
+                $oListaPrecio->IdListaPrecios = $this->idListaPrecio($unidadPrecio->PriceList);
+                $oListaPrecio->IdUnidadMedida = $this->idUnidadNumero($unidadPrecio->UoMEntry);
+                $oListaPrecio->Price = $unidadPrecio->AdditionalPrice2;
+                $oListaPrecio->Currency = $unidadPrecio->AdditionalCurrency2;
+                $oListaPrecio->User = 1;
+                $oListaPrecio->Status = 1;
+                $oListaPrecio->DateUpdate = date("Y-m-d");
+                $oListaPrecio->save();
+              }
+            }
+          } else {
+            $oListaPrecio = new Productosprecios();
+            $oListaPrecio->ItemCode = $puntero->ItemCode;
+            $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+            $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM :$puntero->SalesUnit;
+            $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+            $oListaPrecio->Price = $listaPrecio->Price;
+            $oListaPrecio->Currency = $listaPrecio->Currency;
+            $oListaPrecio->User = 1;
+            $oListaPrecio->Status = 1;
+            $oListaPrecio->DateUpdate = date("Y-m-d");
+            $oListaPrecio->save();
+            if (intval($listaPrecio->AdditionalPrice1) != 0 && !is_null($listaPrecio->AdditionalCurrency1)){
+              $oListaPrecio = new Productosprecios();
+              $oListaPrecio->ItemCode = $puntero->ItemCode;
+              $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+              $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM :$puntero->SalesUnit;
+              $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+              $oListaPrecio->Price = $listaPrecio->AdditionalPrice1;
+              $oListaPrecio->Currency = $listaPrecio->AdditionalCurrency1;
+              $oListaPrecio->User = 1;
+              $oListaPrecio->Status = 1;
+              $oListaPrecio->DateUpdate = date("Y-m-d");
+              $oListaPrecio->save();
+            }
+            if (intval($listaPrecio->AdditionalPrice2) != 0 && !is_null($listaPrecio->AdditionalCurrency2)){
+              $oListaPrecio = new Productosprecios();
+              $oListaPrecio->ItemCode = $puntero->ItemCode;
+              $oListaPrecio->IdListaPrecios = $this->idListaPrecio($listaPrecio->PriceList);
+              $unidadMedida = is_null($puntero->SalesUnit) ? $puntero->InventoryUOM :$puntero->SalesUnit;
+              $oListaPrecio->IdUnidadMedida = $this->idUnidad($unidadMedida);
+              $oListaPrecio->Price = $listaPrecio->AdditionalPrice2;
+              $oListaPrecio->Currency = $listaPrecio->AdditionalCurrency2;
+              $oListaPrecio->User = 1;
+              $oListaPrecio->Status = 1;
+              $oListaPrecio->DateUpdate = date("Y-m-d");
+              $oListaPrecio->save();
+            }
+          }
+
+        }
+      }
+    }
+
+
+
+
+
+    private function idUnidad($unidad)
+    {
+        $unidadMedida = Unidadesmedida::find()->where(['Name' => $unidad])->one();
+        if (is_null($unidadMedida)) {
+          $unidadMedida = Unidadesmedida::find()->where(['like', 'Name', 'UNI%'])->one();
+        }
+       return (is_null($unidadMedida)) ? $this->nuevaUnidad() : $unidadMedida->id;
+    }
+
+    private function idUnidadNumero($unidad)
+    {
+      $unidad = Unidadesmedida::find()->where(['AbsEntry' => $unidad])->one();
+      if (is_null($unidad)) {
+        $unidad = Unidadesmedida::find()->where(['like','Name', 'UNI%'])->one();
+      }
+      try {
+        return $unidad->id;
+      } catch (Exception $e){
+        echo $unidad;
+    }
+
+
+    }
+
+    private function idListaPrecio($lista)
+    {
+      $listaPrecio = Listaprecios::find()->where(['PriceListNo' => $lista])->one();
+      return $listaPrecio->id;
+    }
+
+    public function clientesGrupos()
+    {
+      $this->model->actiondir = 'BusinessPartnerGroups?$select=Code,Name,Type';
+      $clientesgrupos = $this->model->executex();
+      $clientesgrupos = $clientesgrupos->value;
+      Yii::$app->db->createCommand('TRUNCATE TABLE clientesgrupo;')->execute();
+      $ids = '';
+      foreach ($clientesgrupos as $puntero) {
+        $model = new Clientesgrupo();
+        $model->Code = $puntero->Code;
+        $model->Name = $puntero->Name;
+        $model->Type = $puntero->Type;
+        $model->User = 1;
+        $model->Status = 1;
+        $model->DateUpdate = date('Y-m-d');
+        $model->save();
+        $ids .= $model->id;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from clientesgrupo')->queryAll();
+	  Yii::error($count);
+      return $ids;
+    }
+
+    public function clientes()
+    {
+      $this->model->actiondir = 'BusinessPartners?$select=CardCode,CardName,Address,CreditLimit,MaxCommitment,DiscountPercent,'
+        .'PriceListNum,SalesPersonCode,Currency,County,Country,CurrentAccountBalance,NoDiscounts,PriceMode,PriceMode,FederalTaxID,'
+        .'Phone1,ContactPerson,PayTermsGrpCode,GroupCode,BPAddresses,Territory,CardType,DiscountRelations,CardForeignName,Phone1,Phone2,ContactPerson,'
+        .'MailAddress,EmailAddress,FreeText,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Cellular,ContactEmployees,Industry';
+      $cantidad = $this->model->countRows(0);
+	  Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE clientes;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE contactos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE clientessucursales;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+	   for ($i= 0; $i <$cantidad;$i+=25){
+		$this->model->actiondir = 'BusinessPartners?$select=CardCode,CardName,Address,CreditLimit,MaxCommitment,DiscountPercent,'
+        .'PriceListNum,SalesPersonCode,Currency,County,Country,CurrentAccountBalance,NoDiscounts,PriceMode,PriceMode,FederalTaxID,'
+        .'Phone1,ContactPerson,PayTermsGrpCode,GroupCode,BPAddresses,Territory,CardType,DiscountRelations,CardForeignName,Phone1,Phone2,ContactPerson,'
+        .'MailAddress,EmailAddress,FreeText,Properties1,Properties2,Properties3,Properties4,Properties5,Properties6,Properties7,Cellular,ContactEmployees,Industry&$skip='.$i;   
+		 $clientes = $this->model->executex(25);
+      $clientes = $clientes->value;     
+      $ids = '';
+      foreach ($clientes as $puntero) {
+        $cliente = new Clientes();
+        $cliente->CardCode = $puntero->CardCode;
+        $cliente->CardName = $this->remplaceString($puntero->CardName);
+        $cliente->Address = $this->remplaceString($puntero->Address);
+        $cliente->CreditLimit = $puntero->CreditLimit;
+        $cliente->MaxCommitment = $puntero->MaxCommitment;
+        $cliente->DiscountPercent = $puntero->DiscountPercent;
+        $cliente->PriceListNum = $puntero->PriceListNum;
+        $cliente->SalesPersonCode = $puntero->SalesPersonCode;
+        $cliente->Currency = $puntero->Currency;
+        $cliente->County = $puntero->County;
+        $cliente->Country = $this->remplaceString($puntero->Country);
+        $cliente->CurrentAccountBalance = $puntero->CurrentAccountBalance;
+        $cliente->NoDiscounts = $puntero->NoDiscounts;
+        $cliente->FederalTaxId = $puntero->FederalTaxID;
+        $cliente->PhoneNumber = $puntero->Phone1;
+        $cliente->ContactPerson = $puntero->ContactPerson;
+        $cliente->PayTermsGrpCode = $puntero->PayTermsGrpCode;
+        $cliente->Latitude = 0;
+        $cliente->Longitude = 0;
+        $cliente->Mobilecod = 0;
+        $cliente->GroupCode = $puntero->GroupCode;
+        $cliente->User = 1;
+        $cliente->Status = 1;
+        $cliente->DateUpdate = date('Y-m-d');
+        $cliente->U_XM_DosificacionSocio = 0;
+        $cliente->Territory = $puntero->Territory;
+        $cliente->CardType = $puntero->CardType;
+        $cliente->DiscountRelations = $puntero->DiscountRelations;
+        $cliente->CardForeignName = $this->remplaceString($puntero->CardForeignName);
+        $cliente->Phone2 = $puntero->Phone2;
+        $cliente->Cellular = $puntero->Cellular;
+        $cliente->EmailAddress = $puntero->EmailAddress;
+        $cliente->MailAdress = $this->remplaceString($puntero->MailAddress);
+        $cliente->Properties1 = $puntero->Properties1;
+        $cliente->Properties2 = $puntero->Properties2;
+        $cliente->Properties3 = $puntero->Properties3;
+        $cliente->Properties4 = $puntero->Properties4;
+        $cliente->Properties5 = $puntero->Properties5;
+        $cliente->Properties6 = $puntero->Properties6;
+        $cliente->Properties7 = $puntero->Properties7;
+        $cliente->FreeText = $puntero->FreeText;
+        $cliente->Industry = $puntero->Industry;
+        if ($cliente->save(false)) {
+          foreach ($puntero->BPAddresses as $val) {
+            $direccion = new Clientessucursales();
+            $direccion->AddresName = $this->remplaceString($val->AddressName);
+            $direccion->Street = $this->remplaceString($val->Street);
+            $direccion->State = $val->State;
+            $direccion->FederalTaxId = $val->FederalTaxID;
+            $direccion->CreditLimit = 0;
+            $direccion->TaxCode = $val->TaxCode;
+            $direccion->User = 1;
+            $direccion->Status = 1;
+            $direccion->DateUpdate = date('Y-m-d');
+            $direccion->CardCode = $cliente->CardCode;
+            $direccion->save();
+          }
+
+          foreach($puntero->ContactEmployees as $con){
+            $contacto = new Contactos();
+            $contacto->id = null;
+            $contacto->nombre = $con->Name;
+            $contacto->cardCode = $con->CardCode;
+            $contacto->direccion = $con->Address;
+            $contacto->telefono1 = $con->Phone1;
+            $contacto->telefono2 = $con->Phone1;
+            $contacto->celular = $con->MobilePhone;
+            $contacto->tipo = $con->Position;
+            $contacto->comentarios = '';
+            $contacto->User = 1;
+            $contacto->Status = 1;
+            $contacto->DateUpdate = date('Y-m-d');
+            $contacto->save();
+          }
+        }
+        $ids .= $cliente->id;
+      }
+
+		 
+	   }
+	  
+	  
+	  
+	  return $ids;
+    }
+
+    public function tipoCambio()
+    {
+      $fecha = Carbon::today();
+      $model = new Servislayer();
+      $monedaLocal = Monedassistema::find()->one();
+      $monedaLocal = $monedaLocal->getAttribute('CurrencyLocal');
+      $fechas = true;
+      $tiposCambios = [];
+        $monedaLocal = Monedas::find()->where(['Code' => strtoupper($monedaLocal)])->one();
+        $monedas = Monedas::find()->select('id,Code')->all();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE tiposcambio;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+        foreach ($monedas as $moneda) {
+          $fechas = true;
+          if ($monedaLocal->getAttribute('Code') != $moneda->Code) {
+            while ($fechas) {
+              $model->actiondir = 'SBOBobService_GetCurrencyRate';
+              $parametros = [
+                "Currency" => $moneda->Code,
+                "Date"     => $fecha->format('Ymd')
+              ];
+              $respuesta = $model->executePost($parametros);
+              if (!$respuesta) {
+                $fechas = !$fechas;
+                break;
+              }
+              $fecha->addDay(1);
+              $tipoCambio = new Tiposcambio();
+              $tipoCambio->ExchangeRateFrom = $monedaLocal->id;
+              $tipoCambio->ExchangeRateTo = $moneda->id;
+              $tipoCambio->ExchangeRateDate = $fecha->format("Y-m-d");
+              $tipoCambio->ExchangeRate = $respuesta;
+              $tipoCambio->User = 1;
+              $tipoCambio->Status = 1;
+              $tipoCambio->DateUpdate = Carbon::today();
+              $tipoCambio->save(false);
+            }
+          }
+        }
+    $count = Yii::$app->db->createCommand('select count(*) from tiposcambio')->queryAll();
+	  Yii::error($count);
+	}
+
+    public function condicionesPagos()
+    {
+      $this->model->actiondir = 'PaymentTermsTypes';
+      $condicionesPagos = $this->model->executex();
+      $condicionesPagos = $condicionesPagos->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE condicionespagos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = '';
+      foreach ($condicionesPagos as $puntero){
+        $condicionPago = new Condicionespagos();
+        $condicionPago->GroupNumber = $puntero->GroupNumber;
+        $condicionPago->PaymentTermsGroupName = $puntero->PaymentTermsGroupName;
+        $condicionPago->StartFrom = $puntero->StartFrom;
+        $condicionPago->NumberOfAdditionalMonths = $puntero->NumberOfAdditionalMonths;
+        $condicionPago->NumberOfAdditionalDays = $puntero->NumberOfAdditionalDays;
+        $condicionPago->CreditLimit = $puntero->CreditLimit;
+        $condicionPago->GeneralDiscount = $puntero->GeneralDiscount;
+        $condicionPago->InterestOnArrears = $puntero->InterestOnArrears;
+        $condicionPago->PriceListNo = $puntero->PriceListNo;
+        $condicionPago->LoadLimit = $puntero->LoadLimit;
+        $condicionPago->OpenReceipt = $puntero->OpenReceipt;
+        $condicionPago->DiscountCode = $puntero->DiscountCode;
+        $condicionPago->DunningCode = $puntero->DunningCode;
+        $condicionPago->BaselineDate = $puntero->BaselineDate;
+        $condicionPago->NumberOfInstallments = $puntero->NumberOfInstallments;
+        $condicionPago->NumberOfToleranceDays = $puntero->NumberOfToleranceDays;
+        $condicionPago->U_UsaLc = isset($puntero->U_UsaLc) ? $puntero->U_UsaLc : 0;
+        $condicionPago->User = Yii::$app->user->identity->getId();
+        $condicionPago->DateUpdated = Carbon::today();
+        $condicionPago->Status = 1;
+        $condicionPago->save(false);
+      }
+		$count = Yii::$app->db->createCommand('select count(*) from condicionespagos')->queryAll();
+	  Yii::error($count);
+	}
+
+    public function territorios(){
+      $this->model->actiondir = 'Territories';
+      $territorios = $this->model->executex();
+      $territorios = $territorios->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE territorios;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = '';
+      foreach ($territorios as $puntero){
+        $sql .= "INSERT INTO territorios (id,TerritoryID,Description,LocationIndex,Inactive,Parent,User,Status,DateUpdate) VALUES(DEFAULT,";
+        $sql .= "{$puntero->TerritoryID},'{$puntero->Description}',{$puntero->LocationIndex},'{$puntero->Inactive}',{$puntero->Parent},";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from territorios')->queryAll();
+	  Yii::error($count);
+    }
+
+    public function empleadosRoles(){
+      $this->model->actiondir = 'EmployeeRolesSetup';
+      $empleadosRoles = $this->model->executex();
+      $empleadosRoles = $empleadosRoles->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE empleadosroles;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = '';
+      foreach ($empleadosRoles as $puntero){
+        $sql .= "INSERT INTO empleadosroles (id,TypeID,Name,Description,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "{$puntero->TypeID},'{$puntero->Name}','{$puntero->Description}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from empleadosroles')->queryAll();
+	  Yii::error($count);
+    }
+
+    public function empleadosInfo()
+    {
+      $this->model->actiondir = 'EmployeesInfo?$select=EmployeeID,LastName,FirstName,MiddleName,EmployeeRolesInfoLines,SalesPersonCode';
+      $empleadosInfo = $this->model->executex();
+      $empleadosInfo = $empleadosInfo->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE empleadosinfo;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE empleadosrolesinfo;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlSub = "";
+      foreach ($empleadosInfo as $puntero) {
+        $sql .= "INSERT INTO empleadosinfo (id,EmployeeID,LastName,FirstName,MiddleName,SalesPersonCode,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "{$puntero->EmployeeID},
+          '{$this->remplaceString($puntero->LastName)}',
+          '{$this->remplaceString($puntero->FirstName)}',
+          '{$this->remplaceString($puntero->MiddleName)}',
+          {$puntero->SalesPersonCode},";
+        $sql .= Yii::$app->user->identity->getId() . ",1,'" . Carbon::today() . "');";
+        foreach ($puntero->EmployeeRolesInfoLines as $punteroSub) {
+          $sqlSub .= "INSERT INTO empleadosrolesinfo (id,EmployeeID,LineNum,RoleID,User,Status,DateUpdate) VALUES (DEFAULT,";
+          $sqlSub .= "{$punteroSub->EmployeeID},{$punteroSub->LineNum},{$punteroSub->RoleID},";
+          $sqlSub .= Yii::$app->user->identity->getId() . ",1,'" . Carbon::today() . "');";
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $db->createCommand($sqlSub)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from empleadosinfo')->queryAll();
+	  Yii::error($count);
+	  $count = Yii::$app->db->createCommand('select count(*) from empleadosrolesinfo')->queryAll();
+	  Yii::error($count);
+    }
+
+    private function nuevaUnidad(){
+      $unidadMedida = Unidadesmedida::find()
+                        ->where('Code = :unidad',[':unidad'=>'UNIDAD'])
+                        ->one();
+      if (!is_null($unidadMedida)){
+        return $unidadMedida->getAttribute('id');
+      }
+      $unidadMedidaN = new Unidadesmedida();
+      $unidadMedidaN->AbsEntry = Unidadesmedida::find()->count() + 1;
+      $unidadMedidaN->Code = 'UNIDAD';
+      $unidadMedidaN->Name = 'UNIDAD';
+      $unidadMedidaN->User = Yii::$app->user->identity->getId();
+      $unidadMedidaN->Status = 1;
+      $unidadMedidaN->DateTime = Carbon::today();
+      $unidadMedidaN->save(false);
+      return $unidadMedidaN->getAttribute('id');
+    }
+
+    public function productosGrupo(){
+        $this->model->actiondir = 'ItemGroups?$select=PriceDifferencesAccount,StockInflationAdjustAccount,ExchangeRateDifferencesAccount,IncreasingAccount,StockInflationOffsetAccount,PurchaseOffsetAccount,WIPMaterialVarianceAccount,PurchaseAccount,ReturningAccount,CostInflationAccount,ExpensesAccount,RevenuesAccount,TransfersAccount,CostInflationOffsetAccount,InventoryAccount,DecreaseGLAccount,Number,GoodsClearingAccount,IncreaseGLAccount,ForeignRevenuesAccount,WIPMaterialAccount,ShippedGoodsAccount,ExemptRevenuesAccount,DecreasingAccount,VATInRevenueAccount,VarianceAccount,EUExpensesAccount,ForeignExpensesAccount,GroupName,NegativeInventoryAdjustmentAccount,WHIncomingCenvatAccount,WHOutgoingCenvatAccount,StockInTransitAccount,WipOffsetProfitAndLossAccount,InventoryOffsetProfitAndLossAccount,PurchaseBalanceAccount';
+        $empleadosInfo = $this->model->executex();
+        $empleadosInfo = $empleadosInfo->value;
+        Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE productosgrupo;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+        $sql = "";
+        foreach ($empleadosInfo as $puntero){
+          $sql .= "INSERT INTO productosgrupo (id,PriceDifferencesAccount,StockInflationAdjustAccount,ExchangeRateDifferencesAccount,IncreasingAccount,StockInflationOffsetAccount,PurchaseOffsetAccount,WIPMaterialVarianceAccount,PurchaseAccount,ReturningAccount,CostInflationAccount,ExpensesAccount,RevenuesAccount,TransfersAccount,CostInflationOffsetAccount,InventoryAccount,DecreaseGLAccount,Number,GoodsClearingAccount,IncreaseGLAccount,ForeignRevenuesAccount,WIPMaterialAccount,ShippedGoodsAccount,ExemptRevenuesAccount,DecreasingAccount,VATInRevenueAccount,VarianceAccount,EUExpensesAccount,ForeignExpensesAccount,GroupName,NegativeInventoryAdjustmentAccount,WHIncomingCenvatAccount,WHOutgoingCenvatAccount,StockInTransitAccount,WipOffsetProfitAndLossAccount,InventoryOffsetProfitAndLossAccount,PurchaseBalanceAccount,User,Status,DateUpdate) VALUES (DEFAULT,";
+          $sql .= "'{$puntero->PriceDifferencesAccount}','{$puntero->StockInflationAdjustAccount}','{$puntero->ExchangeRateDifferencesAccount}','{$puntero->IncreasingAccount}','{$puntero->StockInflationOffsetAccount}','{$puntero->PurchaseOffsetAccount}','{$puntero->WIPMaterialVarianceAccount}','{$puntero->PurchaseAccount}','{$puntero->ReturningAccount}','{$puntero->CostInflationAccount}','{$puntero->ExpensesAccount}','{$puntero->RevenuesAccount}','{$puntero->TransfersAccount}','{$puntero->CostInflationOffsetAccount}','{$puntero->InventoryAccount}','{$puntero->DecreaseGLAccount}',{$puntero->Number},'{$puntero->GoodsClearingAccount}','{$puntero->IncreaseGLAccount}','{$puntero->ForeignRevenuesAccount}','{$puntero->WIPMaterialAccount}','{$puntero->ShippedGoodsAccount}','{$puntero->ExemptRevenuesAccount}','{$puntero->DecreasingAccount}','{$puntero->VATInRevenueAccount}','{$puntero->VarianceAccount}','{$puntero->EUExpensesAccount}','{$puntero->ForeignExpensesAccount}','{$puntero->GroupName}','{$puntero->NegativeInventoryAdjustmentAccount}','{$puntero->WHIncomingCenvatAccount}','{$puntero->WHOutgoingCenvatAccount}','{$puntero->StockInTransitAccount}','{$puntero->WipOffsetProfitAndLossAccount}','{$puntero->InventoryOffsetProfitAndLossAccount}','{$puntero->PurchaseBalanceAccount}',";
+          $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+        }
+        $db = Yii::$app->db;
+        $transaction = $db->beginTransaction();
+        try {
+          $db->createCommand($sql)->execute();
+          $transaction->commit();
+        } catch (\Exception $e) {
+          $transaction->rollBack();
+          throw $e;
+        } catch (\Throwable $e) {
+          $transaction->rollBack();
+          throw $e;
+        }
+		$count = Yii::$app->db->createCommand('select count(*) from productosgrupo')->queryAll();
+		Yii::error($count);
+      }
+
+    public function lbcc(){
+      $this->model->actiondir = 'LBCC';
+      $lbcc = $this->model->executex();
+      $lbcc = $lbcc->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE lbcc;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      foreach ($lbcc as $puntero){
+        $sql .= "INSERT INTO lbcc (id,Code,Name,DocEntry,Canceled,Object,LogInst,UserSign,Transfered,CreateDate,CreateTime,UpdateDate,UpdateTime,DataSource,U_NumeroAutorizacion,U_ObjType,U_Estado,U_PrimerNumero,U_NumeroSiguiente,U_UltimoNumero,U_Series,U_SeriesName,U_FechaLimiteEmision,U_LlaveDosificacion,U_Leyenda,U_Leyenda2,U_TipoDosificacion,U_Sucursal,U_EmpleadoVentas,U_GrupoCliente,U_Actividad,User,Status,DateUpdate) VALUES (DEFAULT,";
+        //$sql .= "'{$puntero->Code}','{$puntero->Name}',{$puntero->DocEntry},'{$puntero->Canceled}','{$puntero->Object}','{$puntero->LogInst}',{$puntero->UserSign},'{$puntero->Transfered}','{$puntero->CreateDate}','{$puntero->CreateTime}','{$puntero->UpdateDate}','{$puntero->UpdateTime}','{$puntero->DataSource}','{$puntero->U_NumeroAutorizacion}',{$puntero->U_ObjType},'{$puntero->U_Estado}',{$puntero->U_PrimerNumero},{$puntero->U_NumeroSiguiente},{$puntero->U_UltimoNumero},{$puntero->U_Series},'{$puntero->U_SeriesName}','{$puntero->U_FechaLimiteEmision}','{$puntero->U_LlaveDosificacion}','{$puntero->U_Leyenda}','{$puntero->U_Leyenda2}',";
+        $sql .= "'{$puntero->Code}','{$puntero->Name}',{$puntero->DocEntry},'{$puntero->Canceled}','{$puntero->Object}','{$puntero->LogInst}',{$puntero->UserSign},'{$puntero->Transfered}','{$puntero->CreateDate}','{$puntero->CreateTime}','{$puntero->UpdateDate}','{$puntero->UpdateTime}','{$puntero->DataSource}','{$puntero->U_NumeroAutorizacion}',{$puntero->U_ObjType},'{$puntero->U_Estado}',{$puntero->U_PrimerNumero},{$puntero->U_NumeroSiguiente},{$puntero->U_UltimoNumero},{$puntero->U_Series},'{$puntero->U_SeriesName}','{$puntero->U_FechaLimiteEmision}','{$puntero->U_LlaveDosificacion}','{$puntero->U_Leyenda}','',";
+		    $sql .= "0,";// $puntero->U_TipoDosificacion ? $puntero->U_TipoDosificacion."," : 0 .",";
+		    $sql .= "'','',";//"'{$puntero->U_Sucursal}','{$puntero->U_EmpleadoVentas}',";
+		    $sql .= "0,";//$puntero->U_GrupoCliente ? $puntero->U_GrupoCliente.",":0 .",";
+        $sql .= "0,";//$puntero->U_Actividad ? $puntero->U_Actividad."," : 0 .",";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from lbcc')->queryAll();
+		Yii::error($count);
+    }
+
+    public function descuentosEspeciales(){
+      $this->model->actiondir = 'SpecialPrices';
+      $descuentosEspeciales = $this->model->executex();
+      $descuentosEspeciales = $descuentosEspeciales->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE descuentosespeciales;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE descuentoscantidad;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE descuentosperiodo;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlSub = "";
+      $sqlSubO = "";
+      foreach ($descuentosEspeciales as $puntero){
+        $sql .= "INSERT INTO descuentosespeciales (id,PriceListNum,ItemCode,AutoUpdate,ValidFrom,Currency,Price,DiscountPercent,SourcePrice,CardCode,ValidTo,Valid,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "{$puntero->PriceListNum},'{$puntero->ItemCode}','{$puntero->AutoUpdate}','{$puntero->ValidFrom}','{$puntero->Currency}',{$puntero->Price},{$puntero->DiscountPercent},'{$puntero->SourcePrice}','{$puntero->CardCode}','{$puntero->ValidTo}','{$puntero->Valid}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+        if (count($puntero->SpecialPriceDataAreas)){
+          foreach ($puntero->SpecialPriceDataAreas as $subPuntero){
+            $sqlSub .= "INSERT INTO descuentosperiodo (id,PriceCurrency,AutoUpdate,Dateto,Discount,SpecialPrice,DateFrom,BPCode,PriceListNo,ItemNo,RowNumber,User,Status,DateUpdate,Valid) VALUES (DEFAULT,";
+            $sqlSub .= "'{$subPuntero->PriceCurrency}','{$subPuntero->AutoUpdate}','{$subPuntero->Dateto}',{$subPuntero->Discount},{$subPuntero->SpecialPrice},'{$subPuntero->DateFrom}','{$subPuntero->BPCode}',{$subPuntero->PriceListNo},'{$subPuntero->ItemNo}',{$subPuntero->RowNumber},";
+            $sqlSub .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."','{$puntero->Valid}');";
+            if (count($subPuntero->SpecialPriceQuantityAreas)){
+              foreach ($subPuntero->SpecialPriceQuantityAreas as $punteroObjeto ) {
+                $sqlSubO .= "INSERT INTO descuentoscantidad (id,Quantity,SPDARowNumber,SpecialPrice,ItemNo,RowNumber,BPCode,PriceCurrency,Discountin,UoMEntry,ListPriceNo,Dateto,Datefrom,User,Status,DateUpdate,Valid) VALUES (DEFAULT,";
+                $sqlSubO .= "{$punteroObjeto->Quantity},{$punteroObjeto->SPDARowNumber},{$punteroObjeto->SpecialPrice},'{$punteroObjeto->ItemNo}',{$punteroObjeto->RowNumber},'{$punteroObjeto->BPCode}','{$punteroObjeto->PriceCurrency}',{$punteroObjeto->Discountin},{$punteroObjeto->UoMEntry},";
+                $sqlSubO .= "{$subPuntero->PriceListNo},'{$subPuntero->Dateto}','{$subPuntero->DateFrom}',";
+                $sqlSubO .= Yii::$app->user->identity->getId() . ",1,'" . Carbon::today() . "','{$puntero->Valid}');";
+              }
+            }
+          }
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $db->createCommand($sqlSub)->execute();
+        $db->createCommand($sqlSubO)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from descuentosespeciales')->queryAll();
+		Yii::error($count);
+		$count = Yii::$app->db->createCommand('select count(*) from descuentoscantidad')->queryAll();
+		Yii::error($count);
+		$count = Yii::$app->db->createCommand('select count(*) from descuentosperiodo')->queryAll();
+		Yii::error($count);
+    }
+
+    public function descuentosGrupo(){
+      $this->model->actiondir = 'EnhancedDiscountGroups';
+      $descuentosEspeciales = $this->model->executex();
+      $descuentosEspeciales = $descuentosEspeciales->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE grupodescuentos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE grupodescuentoslinea;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlSub = "";
+      foreach ($descuentosEspeciales as $puntero){
+        $validFrom = empty($puntero->ValidFrom) ? '0000-00-00' : $puntero->ValidFrom;
+        $validTo = empty($puntero->ValidTo) ? '0000-00-00' : $puntero->ValidTo;
+        $sql .= "INSERT INTO grupodescuentos (id,AbsEntry,Type,ObjectCode,DiscountRelations,Active,ValidFrom,ValidTo,User,Status,DateUpdate,Priority) VALUES (DEFAULT,";
+        $sql .= "{$puntero->AbsEntry},'{$puntero->Type}','{$puntero->ObjectCode}','{$puntero->DiscountRelations}','{$puntero->Active}','{$validFrom}','{$validTo}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."',";
+        if ($puntero->Type == 'dgt_SpecificBP'){
+          $sql .= 1;
+        } else if ($puntero->Type == 'dgt_VendorGroup'){
+          $sql .= 2;
+        } else if ($puntero->Type == 'dgt_CustomerGroup'){
+          $sql .= 3;
+        } else if ($puntero->Type == 'dgt_AllBPs'){
+          $sql .= 4;
+        }
+        $sql .= ");";
+        if (count($puntero->DiscountGroupLineCollection)){
+          foreach ($puntero->DiscountGroupLineCollection as $subPuntero){
+            $sqlSub .= "INSERT INTO grupodescuentoslinea (id,AbsEntry,ObjectType,ObjectCode,DiscountType,Discount,PaidQuantity,FreeQuantity,MaximumFreeQuantity,User,Status,DateUpdate,ObjectTypeClient,ValidFrom,ValidTo) VALUES (DEFAULT,";
+            $sqlSub .= "{$subPuntero->AbsEntry},'{$subPuntero->ObjectType}','{$subPuntero->ObjectCode}','{$subPuntero->DiscountType}',{$subPuntero->Discount},{$subPuntero->PaidQuantity},{$subPuntero->FreeQuantity},{$subPuntero->MaximumFreeQuantity},";
+            $sqlSub .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."','{$puntero->Type}','{$validFrom}','{$validTo}');";
+          }
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $db->createCommand($sqlSub)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from grupodescuentos')->queryAll();
+		Yii::error($count);
+		$count = Yii::$app->db->createCommand('select count(*) from grupodescuentoslinea')->queryAll();
+		Yii::error($count);
+    }
+
+    private function productoPropiedad($producto){
+        foreach ($producto as $clave => $valor){
+          if (!is_array($valor)) {
+            if (strpos($clave, 'Properties') !== false) {
+              if ($valor == 'tYES') {
+                Yii::error($clave . "=>" . $valor);
+                $propiedad = new Propiedadesproductos();
+                $propiedad->ItemCode = $producto->ItemCode;
+                $propiedad->propiedad = $clave;
+                $propiedad->valor = $valor;
+                $propiedad->User = Yii::$app->user->identity->getId();
+                $propiedad->DateUpdate = Carbon::today();
+                $propiedad->save(false);
+              }
+            }
+          }
+        }
+    }
+
+    public function leyendas(){
+      $this->model->actiondir = 'LEYENDA';
+      $leyendas = $this->model->executex();
+      $leyendas = $leyendas->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE leyendas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlSub = "";
+      foreach ($leyendas as $puntero){
+        $sql .= "INSERT INTO leyendas (id,Code,Name,DocEntry,Canceled,Object,LogInst,UserSign,Transfered,CreateDate,CreateTime,UpdateDate,UpdateTime,DataSource,U_Tipo,U_Descripcion,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "'{$puntero->Code}','{$puntero->Name}',{$puntero->DocEntry},'{$puntero->Canceled}','{$puntero->Object}','{$puntero->LogInst}',{$puntero->UserSign},'{$puntero->Transfered}','{$puntero->CreateDate}','{$puntero->CreateTime}','{$puntero->UpdateDate}','{$puntero->UpdateTime}','{$puntero->DataSource}','{$puntero->U_Tipo}','{$puntero->U_Descripcion}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+        $sql .= ");";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from leyendas')->queryAll();
+		Yii::error($count);
+    }
+
+    public function motivosAnulacion(){
+      $this->model->actiondir = 'Anulacion';
+      $motivosAnulacion = $this->model->executex();
+      $motivosAnulacion = $motivosAnulacion->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE motivosanulacion;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      foreach ($motivosAnulacion as $puntero){
+        $sql .= "INSERT INTO motivosanulacion (id,Code,Name,U_TipoAnulacion,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "'{$puntero->Code}','{$puntero->Name}','{$puntero->U_TipoAnulacion}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+        $sql .= ");";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from motivosanulacion')->queryAll();
+		Yii::error($count);
+    }
+
+    public function objetivoVentas(){
+      $this->model->actiondir ='ANULACIÓN';
+      $motivosAnulacion = $this->model->executex();
+      $motivosAnulacion = $motivosAnulacion->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE motivosanulacion;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      foreach ($motivosAnulacion as $puntero){
+        $sql .= "INSERT INTO leyendas (id,name,kind,url,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "'{$puntero->name}','{$puntero->kind}','{$puntero->url}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+        $sql .= ");";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+    }
+
+    public function facturas(){
+      $this->model->actiondir ='Invoices?$filter=DocumentStatus ne \'bost_Close\'';
+      $facturas = $this->model->executex();
+      $facturas = $facturas->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE facturas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+	  Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE facturasproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+	  $sqlSub = "";
+      foreach ($facturas as $puntero){
+		$sql .= "INSERT INTO facturas (id,DocEntry,DocNum,DocDate,DocDueDate,CardCode,CardName,DocTotal,DocCurrency,JournalMemo,PaymentGroupCode,DocTime,Series,TaxDate,CreationDate,UpdateDate,FinancialPeriod,UpdateTime,U_LB_NumeroFactura,U_LB_NumeroAutorizac,U_LB_FechaLimiteEmis,U_LB_CodigoControl,U_LB_EstadoFactura,U_LB_RazonSocial,U_LB_TipoFactura,SalesPersonCode,ReserveInvoice,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "{$puntero->DocEntry},'{$puntero->DocNum}','{$puntero->DocDate}','{$puntero->DocDueDate}','{$puntero->CardCode}','{$this->remplaceString($puntero->CardName)}',{$puntero->DocTotal},'{$puntero->DocCurrency}','{$puntero->JournalMemo}',{$puntero->PaymentGroupCode},'{$puntero->DocTime}',{$puntero->Series},'{$puntero->TaxDate}','{$puntero->CreationDate}','{$puntero->UpdateDate}',{$puntero->FinancialPeriod},'{$puntero->UpdateTime}','{$puntero->U_LB_NumeroFactura}','{$puntero->U_LB_NumeroAutorizac}','{$puntero->U_LB_FechaLimiteEmis}','{$puntero->U_LB_CodigoControl}','{$puntero->U_LB_EstadoFactura}','{$puntero->U_LB_RazonSocial}',{$puntero->U_LB_TipoFactura},{$puntero->SalesPersonCode},'{$puntero->ReserveInvoice}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+        $sql .= ");";
+		if (count($puntero->DocumentLines)){
+          foreach ($puntero->DocumentLines as $punteroSub){
+            $sqlSub .= "INSERT INTO facturasproductos (id,LineNum,ItemCode,ItemDescription,Quantity,Price,PriceAfterVAT,Currency,Rate,LineTotal,TaxTotal,UnitPrice,DocEntry,User,Status,DateUpdate) VALUES (DEFAULT,";
+            $sqlSub .= "{$punteroSub->LineNum},'{$punteroSub->ItemCode}','{$punteroSub->ItemDescription}',{$punteroSub->Quantity},{$punteroSub->Price},{$punteroSub->PriceAfterVAT},'{$punteroSub->Currency}',{$punteroSub->Rate},{$punteroSub->LineTotal},{$punteroSub->TaxTotal},{$punteroSub->UnitPrice},{$punteroSub->DocEntry},";
+            $sqlSub .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+            $sqlSub .= ");";
+          }
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+		$db->createCommand($sqlSub)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+    }
+
+    public function indicadoresImpuestos(){
+      $this->model->actiondir ='SalesTaxCodes';
+      $indicadoresImpuestos = $this->model->executex();
+      $indicadoresImpuestos = $indicadoresImpuestos->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE indicadoresimpuestos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      foreach ($indicadoresImpuestos as $puntero){
+        foreach ($puntero->SalesTaxCodes_Lines as $punteroSub){
+          $sql .= "INSERT INTO indicadoresimpuestos (id,Code,Rate,RowNumber,STCCode,STACode,EffectiveRate,User,Status,DateUpdate ) VALUES (DEFAULT,";
+          $sql .= "'{$puntero->Code}',{$puntero->Rate},{$punteroSub->RowNumber},'{$punteroSub->STCCode}','{$punteroSub->STACode}',{$punteroSub->EffectiveRate},";
+          $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+          $sql .= ");";
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from indicadoresimpuestos')->queryAll();
+		Yii::error($count);
+    }
+
+    public function gruposUMedida(){
+      $this->model->actiondir ='UnitOfMeasurementGroups?$select=AbsEntry,Code,Name,UoMGroupDefinitionCollection';
+      $grupoUMedida = $this->model->executex();
+      $grupoUMedida = $grupoUMedida->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE grupounidadesmedidas;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      foreach ($grupoUMedida as $puntero){
+        foreach ($puntero->UoMGroupDefinitionCollection as $punteroSub){
+          $sql .= "INSERT INTO grupounidadesmedidas (id,AbsEntry,Code,Name,BaseQuantity,User,Status,DateUpdate) VALUES (DEFAULT,";
+          $sql .= "{$puntero->AbsEntry},'{$puntero->Code}','{$puntero->Name}',{$punteroSub->BaseQuantity},";
+          $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+          $sql .= ");";
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from grupounidadesmedidas')->queryAll();
+		Yii::error($count);
+    }
+
+    public function combos(){
+      $this->model->actiondir ='ProductTrees';
+      $combos = $this->model->executex();
+      $combos = $combos->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE combos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE combosdetalle;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlD = "";
+      foreach ($combos as $puntero){
+        $sql .= "INSERT INTO combos(id,TreeCode,TreeType,Quantity,PriceList,Warehouse,PlanAvgProdSize,HideBOMComponentsInPrintout,ProductDescription,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "'{$puntero->TreeCode}','{$puntero->TreeType}',{$puntero->Quantity},{$puntero->PriceList},'{$puntero->Warehouse}',{$puntero->PlanAvgProdSize},'{$puntero->HideBOMComponentsInPrintout}','{$puntero->ProductDescription}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+        foreach ($puntero->ProductTreeLines as $punteroSub){
+          $sqlD .= "INSERT INTO combosdetalle (id,ItemCode,Quantity,Warehouse,Price,Currency,IssueMethod,ParentItem,PriceList,ItemType,AdditionalQuantity,ChildNum,VisualOrder,User,Status,DateUpdate) VALUES (DEFAULT,";
+          $sqlD .= "'{$punteroSub->ItemCode}',{$punteroSub->Quantity},'{$punteroSub->Warehouse}',{$punteroSub->Price},'{$punteroSub->Currency}','{$punteroSub->IssueMethod}','{$punteroSub->ParentItem}',{$punteroSub->PriceList},'{$punteroSub->ItemType}',{$punteroSub->AdditionalQuantity},{$punteroSub->ChildNum},{$punteroSub->VisualOrder},";
+          $sqlD .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."'";
+          $sqlD .= ");";
+        }
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $db->createCommand($sqlD)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from combos')->queryAll();
+		Yii::error($count);
+		$count = Yii::$app->db->createCommand('select count(*) from combosdetalle')->queryAll();
+		Yii::error($count);
+    }
+
+    public function pagosRecibidos(){
+      $this->model->actiondir ='IncomingPayments';
+      $pagosRecibidos = $this->model->executex();
+      $pagosRecibidos = $pagosRecibidos->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE pagosrecibidos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlD = "";
+      foreach ($pagosRecibidos as $puntero){
+        $sql .= "INSERT INTO pagosrecibidos(id,DocNum,DocType,HandWritten,Printed,DocDate,CardCode,CardName,Address,DocCurrency,CashSum,TransferSum,JournalRemarks,TaxDate,DocEntry,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "{$puntero->DocNum},'{$puntero->DocType}','{$puntero->HandWritten}','{$puntero->Printed}','{$puntero->DocDate}','{$puntero->CardCode}','{$puntero->CardName}','{$puntero->Address}','{$puntero->DocCurrency}',{$puntero->CashSum},{$puntero->TransferSum},'{$puntero->JournalRemarks}','{$puntero->TaxDate}',{$puntero->DocEntry},";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from pagosrecibidos')->queryAll();
+		Yii::error($count);
+    }
+
+    public function cuentasContables(){
+      $this->model->actiondir ='ChartOfAccounts?$select=Code,Name,Balance,AccountLevel,FatherAccountKey,AcctCurrency,FormatCode&$filter=ActiveAccount eq \'tYES\'';
+      $cuentasContables = $this->model->executex();
+      $cuentasContables = $cuentasContables->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE cuentascontables;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = "";
+      $sqlD = "";
+      foreach ($cuentasContables as $puntero){
+        $sql .= "INSERT INTO cuentascontables(id,Code,Name,Balance,AccountLevel,FatherAccountKey,AcctCurrency,FormatCode,User,Status,DateUpdate) VALUES (DEFAULT,";
+        $sql .= "'{$puntero->Code}','{$this->remplaceString($puntero->Name)}',{$puntero->Balance},{$puntero->AccountLevel},'{$puntero->FatherAccountKey}','{$puntero->AcctCurrency}','{$puntero->FormatCode}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from cuentascontables')->queryAll();
+		Yii::error($count);
+    }
+
+    private function remplaceString($string){
+		if (!is_null($string)){
+			return str_replace('\'','`',$string);
+		}
+		return $string;
+    }
+
+    public function industrias(){
+      $this->model->actiondir = 'Industries';
+      $industrias = $this->model->executex();
+      $industrias = $industrias->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE industrias;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = '';
+      foreach ($industrias as $puntero){
+        $sql .= "INSERT INTO industrias (id,nombre,Descripcion) VALUES(";
+        $sql .= "{$puntero->IndustryCode},'{$puntero->IndustryName}','{$puntero->IndustryDescription}');";
+
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+	  $count = Yii::$app->db->createCommand('select count(*) from industrias')->queryAll();
+		Yii::error($count);
+    }
+
+    public function seriesProductos(){
+      $this->model->actiondir = 'SerialNumberDetails';
+      $series = $this->model->executex();
+      $series = $series->value;
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE seriesproductos;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $sql = '';
+      foreach ($series as $puntero){
+        $sql .= "INSERT INTO seriesproductos (DocEntry,ItemCode,SerialNumber,SystemNumber,AdmissionDate,User,Status,Date) VALUES(";
+        $sql .= "{$puntero->DocEntry},'{$puntero->ItemCode}','{$puntero->SerialNumber}',{$puntero->SystemNumber},'{$puntero->AdmissionDate}',";
+        $sql .= Yii::$app->user->identity->getId().",1,'".Carbon::today()."');";
+      }
+      $db = Yii::$app->db;
+      $transaction = $db->beginTransaction();
+      try {
+        $db->createCommand($sql)->execute();
+        $transaction->commit();
+      } catch (\Exception $e) {
+        $transaction->rollBack();
+        throw $e;
+      } catch (\Throwable $e) {
+        $transaction->rollBack();
+        throw $e;
+      }
+      $count = Yii::$app->db->createCommand('select count(*) from industrias')->queryAll();
+      Yii::error($count);
+    }
+    public function Series(){
+      $series = array();
+      Yii::$app->db->createCommand('SET FOREIGN_KEY_CHECKS = 0;TRUNCATE TABLE series;SET FOREIGN_KEY_CHECKS = 1;')->execute();
+      $this->model->actiondir = 'SeriesService_GetSeries';
+      for($i=1;true;$i++){
+        $response = $this->model->executePost(array( "SeriesParams" => array( "Series" => strval($i) )));
+        if ($response) {
+          $serie = new Series();
+          $serie->id = 0;
+          $serie->Document = $response->Document;
+          $serie->DocumentSubType = $response->DocumentSubType;
+          $serie->InitialNumber = $response->InitialNumber;
+          $serie->LastNumber = $response->LastNumber;
+          $serie->NextNumber = $response->NextNumber;
+          $serie->Prefix = $response->Prefix;
+          $serie->Suffix = $response->Suffix;
+          $serie->Remarks = $response->Remarks;
+          $serie->GroupCode = $response->GroupCode;
+          $serie->Locked = $response->Locked;
+          $serie->PeriodIndicator = $response->PeriodIndicator;
+          $serie->Name = $response->Name;
+          $serie->Series = $response->Series;
+          $serie->IsDigitalSeries = $response->IsDigitalSeries;
+          $serie->DigitNumber = $response->DigitNumber;
+          $serie->SeriesType = isset($response->SeriesType) ? $response->SeriesType : null;
+          $serie->IsManual = $response->IsManual;
+          $serie->BPLID = $response->BPLID;
+          $serie->ATDocumentType = $response->ATDocumentType;
+          $serie->IsElectronicCommEnabled = $response->IsElectronicCommEnabled;
+          $serie->CostAccountOnly = $response->CostAccountOnly;
+          $serie->save();
+        } else {
+          if (!($this->model->executePost(array( "SeriesParams" => array( "Series" => strval($i+1) ))))) {
+            break;
+          }
+        }
+      }
+    }
+}
