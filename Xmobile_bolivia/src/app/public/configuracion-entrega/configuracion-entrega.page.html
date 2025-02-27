@@ -1,0 +1,124 @@
+<ion-header class="ion-no-border">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="2">
+        <div>
+          <ion-buttons slot="start">
+            <ion-menu-button *ngIf="this.showMenu=='true'" autoHide="false"></ion-menu-button>
+            <ion-back-button *ngIf="this.showMenu=='false'"></ion-back-button>
+          </ion-buttons>
+        </div>
+      </ion-col>
+      <ion-col size="8">
+        <div style="padding: 0; text-align: center;font-size: 24px;margin-top: 10px;">
+          Configurar entrega
+        </div>
+      </ion-col>
+      <ion-col size="2">
+        <div>
+          <ion-fab-button size="small" color="light" *ngIf="this.editbo=='1'" (click)="activaedi()">
+            <ion-icon name="pencil-outline"></ion-icon>
+          </ion-fab-button>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ion-text-center ">
+    <ion-icon name="settings-outline" style="font-size: 4em;"></ion-icon>
+  </div>
+  <div class="ion-padding">
+    <ion-list>
+      <ion-item mode="ios">
+        <ion-checkbox [(ngModel)]="flagTipoDoc" >Es guia electrónica</ion-checkbox>
+        <ion-label>Es guia electrónica</ion-label>
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-label>Codigo de transportista</ion-label>
+        <ion-select  #C (ionChange)="cargadatos(C.value,1)" class="custom-options" [(ngModel)]="selectTransportis" disabled ="{{selectTransportisEnabled}}">
+          <!-- <ion-select-option *ngFor="let transportista of dataTransportistas" [value]="transportista.CardCode">
+            {{transportista.CardCode}} - {{transportista.CardName}}</ion-select-option> -->
+            <ion-select-option *ngFor="let transportista of dataTransportistas" [value]="transportista.CardCode">
+              {{transportista.CardName}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+     <ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Nombre del transportista " [value]="selectTransportista && selectTransportista.CardName?selectTransportista.CardName:''" disabled></ion-input>
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Licencia del transportista" [value]="selectTransportista && selectTransportista.LicTradNum?selectTransportista.LicTradNum:''"  disabled></ion-input>
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-label>Dirección de Transportista</ion-label>
+        <ion-select #A (ionChange)="cargadatos(A.value,2)" class="custom-options" [(ngModel)]="selectAddress" disabled ="{{selectAddressEnabled}}">
+          <ion-select-option *ngFor="let arryAddress of dataAddress" [value]="arryAddress.Address">
+            {{arryAddress.Address}} - {{arryAddress.Address}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!--<ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Dirección de Transportista " [value]="selectTransportista && selectTransportista.Address?selectTransportista.Address:''" disabled></ion-input>
+      </ion-item>-->
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-label>Licencia de Conductor</ion-label>
+        <ion-select #B (ionChange)="cargadatos(B.value,3)" class="custom-options" [(ngModel)]="selectNotes1" disabled ="{{selectNotes1Enabled}}">
+          <ion-select-option *ngFor="let arryNotes1 of dataNotes1" [value]="arryNotes1.Notes1">
+            {{arryNotes1.Notes1}}</ion-select-option>
+        </ion-select>
+       <!--  {{arryNotes1.Notes1}} - {{arryNotes1.Notes1}}</ion-select-option> -->
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Nombre del Conductor " [value]="nombretrasportista" disabled></ion-input>
+      </ion-item>
+
+      <!--<ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Licencia de Conductor " [value]="selectTransportista && selectTransportista.Notes1?selectTransportista.Notes1:''" disabled></ion-input>
+      </ion-item>-->
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-label>Placa de Vehículo</ion-label>
+        <ion-select class="myCustomSelect" #D (ionChange)="cargadatos(D.value,4)" class="custom-options" [(ngModel)]="selectPLAVEH" disabled ="{{selectPLAVEHEnabled}}">
+          <ion-select-option  *ngFor="let arryPLAVEH of dataPLAVEH" [value]="arryPLAVEH.U_EXX_PLAVEH">
+            {{arryPLAVEH.U_EXX_PLAVEH}} </ion-select-option>
+        </ion-select>
+        <!-- - {{arryPLAVEH.U_EXX_PLAVEH}} -->
+      </ion-item>
+
+      <!--<ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Placa de Vehículo " [value]="selectTransportista && selectTransportista.U_EXX_PLAVEH?selectTransportista.U_EXX_PLAVEH:''" disabled></ion-input>
+      </ion-item>-->
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Marca de Vehículo " [value]="marcavehiculo" disabled></ion-input>
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-input placeholder="Placa de Tolva " [value]="placatolva" disabled></ion-input>
+      </ion-item>
+
+      <ion-item class="roundedInput ion-margin-top">
+        <ion-label>Motivo de Traslado</ion-label>
+        <ion-select #F (ionChange)="cargadatos(F.value,5)" class="custom-options" [(ngModel)]="selectModalidad" disabled ="{{selectModalidadEnabled}}">
+          <ion-select-option *ngFor="let arryModalidad of dataModalidad" [value]="arryModalidad.codigo">
+            {{ arryModalidad.codigo }} - {{ arryModalidad.nombre }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+      
+      <div class="ion-text-center ion-margin-top">
+        <ion-button  size="large" expand="block" shape="round"  color="primary" (click)="saveData()" >Guardar</ion-button>
+      </div>
+     
+    </ion-list>
+
+  </div>
+
+</ion-content>

@@ -1,0 +1,207 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>{{data.CardName}}</small>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-fab *ngIf="VistaCliNormal" horizontal="end" vertical="top" activated="true" slot="fixed" edge>
+        <ion-fab-button color="medium" mode="ios" translucent="ios">
+            <ion-icon name="settings"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-list>
+            <ion-fab-button color="light" (click)="editar()">
+                <ion-icon name="create"></ion-icon>
+            </ion-fab-button>
+            <ion-fab-button (click)="vistasCliente()">
+                <ion-icon name="navigate"></ion-icon>
+            </ion-fab-button>
+        </ion-fab-list>
+    </ion-fab>
+    <ion-card>
+        <br>
+        <!--<ion-img [src]="srcimg" (onerror)="errorLoadImg()" style="height:200px"></ion-img>-->
+        <ion-card-header>
+            <ion-card-title>
+                <p class="ion-text-center">{{data.CardName}}</p>
+            </ion-card-title>
+            <ion-card-subtitle>
+                <p class="ion-text-center"><b><i>Dias de visita</i></b>: {{data.diavisita}}</p>
+            </ion-card-subtitle>
+        </ion-card-header>
+    </ion-card>
+    <ion-card>
+        <ion-list-header color="medium">
+            <ion-label>DATOS DEL CLIENTE</ion-label>
+        </ion-list-header>
+        <ion-card-content>
+            <p><b>Tipo de empresa: </b> {{(nombreTipoEmpresa == 'null')?'':nombreTipoEmpresa}} </p>
+            <p><b>Nombre: </b> {{(data.CardName == 'null')?'':data.CardName}}</p>
+            <p><b>Código: </b> {{(data.CardCode == 'null')?'':data.CardCode}} </p>
+            <p><b>Razon social: </b> {{(data.razonsocial == 'null')?'':data.razonsocial}} </p>
+            <p><b>R.U.C/D.N.I: </b> {{(data.FederalTaxId == 'null')?'':data.FederalTaxId}} </p>
+            <p><b>Celular: </b> {{(data.celular == 'null')?'':data.celular}} </p>
+            <p><b>Teléfono: </b> {{(data.PhoneNumber == 'null')?'':data.PhoneNumber }} </p>
+            <p><b>Email: </b> {{(data.correoelectronico == 'null')?'':data.correoelectronico }} </p>
+            <p><b>Comentario: </b> {{(data.comentario == 'null')?'':data.comentario}}</p>
+
+        </ion-card-content>
+    </ion-card>
+
+    <!--<ion-card name="listCuccs">
+        <ion-list-header color="medium">
+            <ion-label>Campos cliente</ion-label>
+            <ion-button fill="clear">
+                <ion-icon name=" add" style="color:#ffffff; font-size: 25px">
+                </ion-icon>
+            </ion-button>
+        </ion-list-header>
+
+        <ion-list>
+            <ion-item-sliding class="animated fadeIn">
+
+                <ion-item *ngFor="let value of camposCuccs">
+                    <ion-label>
+                        <p><b>Título: </b> {{value.title}}</p>
+                        <p><b>Valor: </b>{{value.name}}</p>
+
+                    </ion-label>
+                </ion-item>
+            </ion-item-sliding>
+        </ion-list>
+    </ion-card>
+
+    <ion-card *ngIf="usaIce==true">
+        <ion-list-header color="medium">
+            <ion-label>GRUPO CANAL</ion-label>
+        </ion-list-header>
+        <ion-card-content>
+
+            <p><b>Canal: </b> {{data.labelCanal}} </p>
+            <p><b>Sub canal: </b> {{data.labelSubCanal}} </p>
+            <p><b>Tipo tienda: </b> {{data.labelTipoTienda}} </p>
+            <p *ngIf="data.labelCadena!=''"><b>Cadena: </b> {{data.labelCadena}} </p>
+            <p *ngIf="data.labelConsolidador!=''"><b>Consolidador: </b> {{data.labelConsolidador}} </p>
+            <p *ngIf="data.cadenaTxt!==''"><b>Texto: </b> {{data.cadenaTxt}} </p>
+
+        </ion-card-content>
+    </ion-card>-->
+
+    <div id="contenedorcamposlabel">
+
+    </div>
+
+    <ion-card>
+        <ion-list-header color="medium">
+            <ion-label>DATOS ADICIONALES</ion-label>
+        </ion-list-header>
+        <ion-card-content>
+            <p><b>Limite de crédito:</b> {{data.CreditLimit | currency : " " : " " }}</p>
+            <p><b>R.U.C:</b> {{data.FederalTaxId}}</p>
+            <p><b>Estado de cuentas:</b> {{data.CurrentAccountBalance | currency : " " : " "}}</p>
+            <p><b>Grupo de cliente:</b> {{data.GroupName}}</p>
+            <p><b>Grupo dosificación:</b> {{textDocificaion}}</p>
+            <p><b>Objetivo ventas mes:</b> {{data.MaxCommitment | currency : " " : " "}}</p>
+            <p><b>Porcentaje de descuento:</b> {{data.DiscountPercent | currency : " " : " "}}</p>
+            <p><b>Anticipos:</b> {{((data.anticipos == 'null' || data.anticipos == '')?0:data.anticipos) | currency : "
+                " : " "}}</p>
+            <p><b>Status:</b> <i *ngIf="data.Status == '1'"> Activo </i><i *ngIf="data.Status != '1'"> Inactivo </i></p>
+            <p><b>Moneda:</b>
+                <i *ngIf="data.Currency == '##'"> Multimoneda</i>
+                <i *ngIf="data.Currency != '##'"> {{data.Currency}}</i>
+            </p>
+            <p><b>Ventas Factura:</b> {{facturastotal | currency : " " : " "}}</p>
+            <p><b>Ventas Ofertas:</b> {{ofertastotal | currency : " " : " "}}</p>
+            <p><b>Ventas Pedidos:</b> {{pedidostotal | currency : " " : " "}}</p>
+            <p *ngFor="let inputx of camposclientes">
+                <b *ngIf="inputx.name == 'cliente_std1' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std1}}</b>
+                <b *ngIf="inputx.name == 'cliente_std2' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std2}}</b>
+                <b *ngIf="inputx.name == 'cliente_std3' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std3}}</b>
+                <b *ngIf="inputx.name == 'cliente_std4' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std4}}</b>
+                <b *ngIf="inputx.name == 'cliente_std5' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std5}}</b>
+                <b *ngIf="inputx.name == 'cliente_std6' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std6}}</b>
+                <b *ngIf="inputx.name == 'cliente_std7' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std7}}</b>
+                <b *ngIf="inputx.name == 'cliente_std8' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std8}}</b>
+                <b *ngIf="inputx.name == 'cliente_std9' && inputx.estado==1">{{inputx.label}}: {{data.cliente_std9}}</b>
+                <b *ngIf="inputx.name == 'cliente_std10' && inputx.estado==1">{{inputx.label}}:
+                    {{data.cliente_std10}}</b>
+            </p>
+        </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+        <ion-list>
+            <ion-list-header color="medium">
+                <ion-label>PERSONAS DE CONTACTO</ion-label>
+            </ion-list-header>
+        </ion-list>
+        <ion-card-content *ngFor="let contacto of dataContactos">
+            <p><b>Nombre: </b> {{(contacto.nombre == "null")?'':contacto.nombre}}</p>
+            <p><b>Cargo: </b>{{(contacto.titulo == "null")?'':contacto.titulo}}</p>
+            <p><b>Teléfono: </b>{{(contacto.telefono == "null")?'':contacto.telefono}}</p>
+            <p><b>Email: </b>{{(contacto.correo == "null")?'':contacto.correo}}</p>
+            <p><b>Comentario: </b>{{(contacto.comentario == "null")?'':contacto.comentario}}</p>
+            <ion-button *ngIf="contacto.telefono != '' &&  VistaCliNormal" size="small" slot="end" expand="block"
+                color="success" (click)="llamar(contacto.telefono.toString())">Llamar
+                <ion-icon name="call" slot="end"></ion-icon>
+            </ion-button>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-list>
+            <ion-list-header color="medium">
+                <ion-label>PRECIOS ASIGNADOS</ion-label>
+            </ion-list-header>
+        </ion-list>
+        <ion-card-content *ngFor="let preciox of preciosdata">
+            <p><b>Lista de precio: </b>{{preciox.PriceListName}}</p>
+            <p><b>Tipo de moneda: </b>{{preciox.Currency}}</p>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-list>
+            <ion-list-header color="medium">
+                <ion-label>SUCURSALES</ion-label>
+            </ion-list-header>
+        </ion-list>
+
+        <ion-row *ngFor="let sucu of sucursalesdata">
+            <ion-col size="10">
+                <ion-card-content>
+                    <p><b>ID de Dirección: </b> {{sucu.AddresName}}</p>
+                    <p><b>Dirección: </b> {{(sucu.Street == 'null')?'Sin Dirección':sucu.Street}}</p>
+                    <p *ngIf="sucu.AdresType == 'B'"><b>Tipo: </b> Dirección de cobro</p>
+                    <p *ngIf="sucu.AdresType == 'S'"><b>Tipo: </b> Dirección de Envío</p>
+                    <p><b>Territorio: </b> {{(sucu.labelTerritorio == 'null')?'Sin Territorio':sucu.labelTerritorio}}</p>
+                </ion-card-content>
+            </ion-col>
+            <ion-col size="2" *ngIf="VistaCliNormal">
+
+                <ion-button *ngIf="sucu.u_lat != 'undefined' " fill="clear" (click)="verMapaNew(sucu)">
+                    <ion-icon name="map"></ion-icon>
+                </ion-button>
+                
+            </ion-col>
+        </ion-row>
+    </ion-card>
+</ion-content>
+<ion-footer *ngIf="VistaCliNormal">
+    <ion-grid>
+        <ion-row [ngClass]="'sinborder'">
+            <ion-col size="6" [ngClass]="'sinborder'">
+                <ion-button expand="full" color="primary" (click)="pagosDeudas()">
+                    D. PENDIENTES
+                </ion-button>
+            </ion-col>
+            <ion-col size="6" [ngClass]="'sinborder'">
+                <ion-button expand="full" color="primary" (click)="pagos()">
+                    PAGO A CUENTA
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-footer>

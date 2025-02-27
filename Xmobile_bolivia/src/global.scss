@@ -1,0 +1,101 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+/* Core CSS required for Ionic components to work properly */
+@import "~@ionic/angular/css/core.css";
+/* Basic CSS for apps built with Ionic */
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import '~@ionic/angular/css/display.css';
+/* Optional CSS utils that can be commented out */
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+
+
+// .datetime-text-date
+// {
+//      display: flex; justify-content: center; background: #f3f1f0; width: 30%; height: 40px;
+//      align-items: center; box-shadow: bisque; margin: 5px; color: blue;
+// }
+
+
+.transparente {
+  padding: 4vh 30px auto 30px;
+  --background: transparent !important;
+}
+
+.searchbar-input {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#ForRadioOptions
+.alert-radio-label.sc-ion-alert-md,
+.alert-radio-label.sc-ion-alert-ios {
+   white-space: normal;
+}
+.alert-tappable.alert-radio {
+   height: auto;
+   contain: content;
+}
+
+
+.alertClients{
+width: 95% !important;
+
+
+}
+.content-items{
+  padding: 10px 10px;
+ }
+
+.myButton {
+  box-shadow: inset 0px 1px 0px 0px #dcecfb;
+  background: linear-gradient(to bottom, #bddbfa 5%, #80b5ea 100%);
+  background-color: #bddbfa;
+  border-radius: 6px;
+  border: 1px solid #84bbf3;
+  display: inline-block;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: Arial;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 6px 24px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #528ecc;
+  margin: 6px;
+}
+
+.myButton:hover {
+  background: linear-gradient(to bottom, #80b5ea 5%, #bddbfa 100%);
+  background-color: #80b5ea;
+}
+
+.myButton:active {
+  position: relative;
+  top: 1px;
+}
+
+#datetimeHidden {
+  display: none !important;
+}
+
+ion-app._gmaps_cdv_ .nav-decor{
+  background-color: transparent !important;
+}
+
+ion-app._gmaps_cdv_ .ion-page:not(._gmaps_cdv_),
+ion-app._gmaps_cdv_ ion-modal:not(._gmaps_cdv_) {
+    display: none;
+}

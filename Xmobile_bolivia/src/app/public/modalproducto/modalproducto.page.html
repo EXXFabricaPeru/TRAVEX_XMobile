@@ -1,0 +1,83 @@
+<ion-header>
+    <ion-toolbar>
+        <!---*ngIf="grupoBonificacion == 0" -->
+        <p class="ion-text-center" *ngIf="grupoBonificacion > 0">BONIFICACIÓN:
+            {{dataexport.databoni[0].nombre}}
+            <!-- Bonificacion: {{nombreBoni}}-->
+        </p>
+        <ion-searchbar *ngIf="grupoBonificacion == 0" #searchx placeholder="Buscar producto, combos..." value=""
+            showCancelButton="always" cancelButtonText="Cancelar" (ionChange)="buscar($event)" (ionCancel)="cerrar()">
+        </ion-searchbar>
+        <ion-button *ngIf="grupoBonificacion == 0" slot="end" fill="clear" (click)="actionCodeBarras()">
+            <ion-icon name="qr-code-sharp"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+    <ion-toolbar *ngIf="grupoBonificacion > 0" color="primary">
+        <ion-title>
+            <small>LIMITE:
+                {{cantidadproductoslimit}} {{unidBoni}}
+                <!-- Bonificacion: {{nombreBoni}}-->
+            </small>
+
+            <small>/  USADOS:
+                {{cantidadproductosusada}} {{unidBoni}}
+                <!-- Bonificacion: {{nombreBoni}}-->
+            </small>
+        </ion-title>
+
+        <ion-buttons *ngIf="dataexport.databoni.opcional=='OPCIONAL'" (click)="cerrarOmitir()" slot="end">
+            <ion-button color="warning">Omitir</ion-button>
+        </ion-buttons>
+
+        <ion-buttons slot="end">
+            <ion-button (click)="cerrar()">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-progress-bar maxlength="30" *ngIf="loadingRegister == true" type="indeterminate" reversed="true" buffer="0.5"
+        color="warning"></ion-progress-bar>
+</ion-header>
+<ion-content>
+    <div style="margin: auto" *ngIf="loadItem">
+        <br /><br />
+        <p class="ion-text-center">
+            <ion-spinner></ion-spinner>
+            <small class="ion-text-center">CARGANDO...</small>
+        </p>
+    </div>
+
+
+    <div *ngIf="validstockProductos" class="message-insuficiente">
+        Stock insuficiente para la bonificación
+    </div>
+    <div *ngIf="validListPricesBoni" class="message-insuficiente">
+        Bonificación no disponible para la lista de precios seleccionada
+    </div>
+
+
+    <ion-list *ngIf="!loadItem && !validstockProductos && !validListPricesBoni ">
+
+        <ion-item *ngFor="let item of items" (click)="findItem(item)" disabled="{{estadoSelect}}">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p><b>{{item.ItemName}}</b></p>
+                <p><b>COD:</b> {{item.ItemCode}} </p>
+                <p><b>GRUPO:</b> {{item.GroupName}} </p>
+            </ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>
+
+<ion-footer *ngIf="grupoBonificacion > 0">
+    <ion-title>
+
+        <small>Productos para bonificar encontrados:
+        </small>
+        <ion-label *ngFor="let item of items">
+            <p><b>({{item.ItemCode}} ) - {{item.ItemName}}</b></p>
+            <p *ngIf="items.length==0"><b>Sin resultados...</b></p>
+
+        </ion-label>
+    </ion-title>
+</ion-footer>

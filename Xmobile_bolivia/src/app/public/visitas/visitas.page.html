@@ -1,0 +1,73 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            <div class="lds-ellipsis" style="text-align: center !important;" *ngIf="!estadovisita">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <small *ngIf="estadovisita">VISITAS</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="cerrar(null)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-card (click)="selectImage()">
+        <ion-img [src]="imagen" style="height:150px"></ion-img>
+        <ion-card-header>
+            <ion-card-subtitle>
+
+
+                <p class="ion-text-center">
+                    <ion-icon name="camera-outline"></ion-icon> Capturar imagen
+                </p>
+            </ion-card-subtitle>
+        </ion-card-header>
+    </ion-card>
+    <!--
+    <ion-button color="warning" expand="block" *ngIf="estadovisita" (click)="registrar()">INICIAR VISITA</ion-button>
+    <ion-button color="danger" expand="block" *ngIf="!estadovisita" (click)="finalizarregister()">FINALIZAR VISITA
+    </ion-button>-->
+
+    <ion-list>
+        <ion-item>
+            <ion-label position="floating">Tipo Razón</ion-label>
+            <ion-select placeholder="Seleccionar" (ionChange)="onChange($event)" class="alert-tappable.alert-radio">
+                <ion-select-option *ngFor="let item of motivosNovisitaData" [value]="item">{{item.Razon}}
+                </ion-select-option>
+
+            </ion-select>
+        </ion-item>
+
+        <!-- Textarea in an item with a floating label -->
+        <ion-item>
+            <ion-label position="floating">Descripción</ion-label>
+            <ion-textarea [(ngModel)]="motivoDesc"> </ion-textarea>
+        </ion-item>
+
+    </ion-list>
+
+    <ion-button color="warning" expand="block" (click)="noVisit()">REGISTRAR VISITA
+    </ion-button>
+
+    <ion-list>
+        <ion-list-header>
+            Historial
+        </ion-list-header>
+        <ion-item *ngFor="let item of items">
+            <ion-avatar slot="start">
+                <img [src]="item.img">
+            </ion-avatar>
+            <ion-label>
+                <h2>CLIENTE: {{item.CartName}}</h2>
+                <h3>FECHA: {{item.fecha}}</h3>
+                <p>HORA {{item.hora}}</p> <!-- - FINAL {{item.horafin}}-->
+            </ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>

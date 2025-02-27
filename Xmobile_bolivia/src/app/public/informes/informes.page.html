@@ -1,0 +1,137 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small>INFORMES DIARIOS</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <app-net></app-net>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <br />
+
+
+    <ion-item>
+        <ion-label position="floating">Fecha</ion-label>
+
+        <ion-datetime [pickerOptions]="{mode:'ios'}" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'"
+            [(ngModel)]="fechaData" displayFormat="YYYY-DD-MM" min="2018-01-01" max="{{fechamax}}"></ion-datetime>
+
+    </ion-item>
+
+    <br />
+    <!--
+    <ion-item (click)="ventadiariaexxis()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE VENTAS</h2>
+            <p>Describe los documentos creados del día y el resumen de ventas.</p>
+        </ion-label>
+    </ion-item>
+    <ion-item (click)="cierrediariaexxis()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>CIERRE DIARIO</h2>
+            <p>Describe el detalle del vendedor con relación a la CAJA.</p>
+        </ion-label>
+    </ion-item>
+-->
+    <ion-item (click)="inventariosreport()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE INVENTARIO</h2>
+            <p>Detallara el inventario.</p>
+        </ion-label>
+    </ion-item>
+    <!--ion-item (click)="ResumenReport()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE CAJA</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item-->
+    <ion-item (click)="ResumenReportRollo()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE CAJA EN ROLLO </h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item>
+    <!--ion-item (click)="detalleCajaReport()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>DETALLE DE CAJA</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item-->
+    <ion-item (click)="detalleCajaReportRollo()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>DETALLE DE CAJA EN ROLLO</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item>
+    <!--ion-item (click)="detalleResumenVentas()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE VENTAS</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item-->
+
+    <ion-item (click)="detalleResumenVentasRollo()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>RESUMEN DE VENTAS EN ROLLO</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item>
+
+    <ion-item (click)="detalleResumenVentasDetalleRollo()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>DETALLE DE VENTAS EN ROLLO</h2>
+            <p>Totales generales.</p>
+        </ion-label>
+    </ion-item>
+
+    <ion-item (click)="detalleBonificaciones()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>DETALLE DE BONIFICACIONES Y DESCUENTOS</h2>
+            <p>Mostrar datos vigentes a la fecha </p>
+        </ion-label>
+    </ion-item>
+
+    <ion-item (click)="cierredecaja()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>CIERRE DE CAJA</h2>
+            <p>Mostrar datos de la caja</p>
+        </ion-label>
+    </ion-item>
+
+    <ion-item (click)="detalledeinventario()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>DETALLE DE INVENTARIO</h2>
+            <p>Mostrar detalle de Inventario</p>
+        </ion-label>
+    </ion-item>
+
+    <ion-item (click)="ventasproductos()">
+        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+            <h2>VENTAS POR PRODUCTOS</h2>
+            <p>Mostrar las ventas por productos</p>
+        </ion-label>
+    </ion-item>
+
+</ion-content>

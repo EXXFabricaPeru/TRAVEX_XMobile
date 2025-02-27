@@ -1,0 +1,24 @@
+
+ion-app._gmaps_cdv_ .nav-decor{
+    background-color: transparent !important;
+}
+
+ion-app._gmaps_cdv_ .ion-page:not(._gmaps_cdv_),
+ion-app._gmaps_cdv_ ion-modal:not(._gmaps_cdv_) {
+    display: none;
+}
+
+.error{
+    font-size:11px;
+    color: orangered;
+}
+
+#map_canvas{
+    width:100%; 
+    height:100%;
+}
+
+.map{
+    z-index: 1000;
+}
+

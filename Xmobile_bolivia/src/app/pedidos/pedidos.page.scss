@@ -1,0 +1,74 @@
+.marginpadding {
+  padding: 0px !important;
+  margin: 0px !important;
+}
+
+.sinBordesBtn {
+  margin-top: 10px;
+  padding: 0px !important;
+  font-size: 25px !important;
+}
+
+.talk__hour-end {
+  display: block;
+}
+
+.container__ventas {
+  display: grid;
+  grid-template-columns: 10fr 1fr;
+  width: 95%;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.container__ventas__extra {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: absolute;
+  bottom: 0;
+  padding: 8px;
+  right: 0;
+
+}
+
+.container__ventas__extra span {
+
+  color: #373737;
+  background-color: #e2e4e3;
+  padding: 5px;
+  border-radius: 5px;
+  display: grid;
+  font-size: 13px;
+  height: 40px;
+  width: 120px;
+}
+
+.status-label {
+  height: 50px;
+  background: #1c3872;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.css-sap {
+  background: #00810f;
+}
+
+.css-mid {
+  background: #1c3872;
+}
+
+.container__status {
+  font-size: 25px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 8px;
+}

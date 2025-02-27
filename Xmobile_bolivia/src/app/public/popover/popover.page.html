@@ -1,0 +1,323 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            <small>CONFIRMA LOS SIGUIENTES DATOS</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="cerrar(1)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <br />
+
+    <!--ion-card>
+        <ion-list>
+            <ion-item>
+                <ion-avatar slot="start">
+                    <ion-icon name="bag-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2> Monto bruto </h2>
+                    <h3> {{totalBruto | number : '1.2-2'}} Bs.</h3>
+                </ion-label>
+            </ion-item>
+
+            <ion-item>
+                <ion-avatar slot="start">
+                    <ion-icon name="bag-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2> Descuentos / bonificaciones </h2>
+                    <h3> {{totalDescuento | number : '1.2-2'}} Bs.</h3>
+                </ion-label>
+            </ion-item>
+
+            <ion-item>
+                <ion-avatar slot="start">
+                    <ion-icon name="bag-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2> Monto a pagar </h2>
+                    <h3> {{totalNeto | number : '1.2-2' }} Bs. </h3>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+    </ion-card-->
+
+    <!--ion-card>
+        <ion-list>
+            <ion-item>
+                <ion-label position="stacked">NIT</ion-label>
+                <ion-input maxlength="20" [(ngModel)]="nit"></ion-input>
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Razón social</ion-label>
+                <ion-input maxlength="30" [(ngModel)]="razonsocial"></ion-input>
+            </ion-item>
+            <ion-item>
+                <ion-label position="stacked">Plazos de entrega</ion-label>
+                <ion-datetime displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY" [pickerOptions]="{mode:'ios'}"
+                    min="{{minPiker}}" max="2025-12-00" [(ngModel)]="plazospago" [doneText]="'SELECCIONAR'"
+                    [cancelText]="'CANCELAR'">
+                </ion-datetime>
+            </ion-item>
+            <ion-item (click)="getOptions()">
+                <ion-label position="stacked">
+                    Condición de pago
+                </ion-label>
+                <ion-input [(ngModel)]="condicionName" readonly></ion-input>
+                <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+            </ion-item>
+            <ion-item *ngIf="condicion == '1000'">
+                <ion-label position="stacked">Numero de cuotas.</ion-label>
+                <ion-input type="number" (ionInput)="actionCantidacuotas($event)"></ion-input>
+            </ion-item>
+            <ion-grid *ngIf="condicion == '1000'">
+                <ion-row>
+                    <ion-col size="1"><b>N°</b></ion-col>
+                    <ion-col size="6"><b>Fechas</b></ion-col>
+                    <ion-col size="5"><b>monto</b></ion-col>
+                </ion-row>
+                <ion-row *ngFor="let inpu of arrinputs; index as i">
+                    <ion-col size="1" *ngIf="i < (arrinputs.length - 1)">
+                        <b style="margin-top: 1px;">{{i+1}}</b>
+                    </ion-col>
+                    <ion-col size="6" *ngIf="i < (arrinputs.length - 1)">
+                        <ion-datetime displayFormat="YYYY-DD-MM" value="{{inpu.DueDate}}"
+                            (ionChange)="actionChangeDuoDate($event)"></ion-datetime>
+                    </ion-col>
+                    <ion-col size="5" *ngIf="i < (arrinputs.length - 1)">
+                        <ion-input type="number" value="{{inpu.Total}}" (ionInput)="actionChangeMonto($event, i)">
+                        </ion-input>
+                    </ion-col>
+
+                    <ion-col size="1" *ngIf="i == (arrinputs.length - 1)">
+                        <b style="margin-top: 1px;">{{i+1}} </b>
+                    </ion-col>
+                    <ion-col size="6" *ngIf="i == (arrinputs.length - 1)">
+                        <ion-datetime [disabled]="true" displayFormat="YYYY-DD-MM" value="{{inpu.DueDate}}">
+                        </ion-datetime>
+                    </ion-col>
+                    <ion-col size="5" *ngIf="i == (arrinputs.length - 1)">
+                        <ion-input [disabled]="true" type="number" value="{{inpu.Total}}"></ion-input>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+            <ion-item>
+                <ion-label position="stacked">Comentario</ion-label>
+                <ion-textarea maxlength="255" [(ngModel)]="comentariox" placeholder="..."></ion-textarea>
+            </ion-item>
+        </ion-list>
+    </ion-card-->
+
+    <ion-card class="content-promocion" *ngIf="dataPromociones.length>0">
+        <span class="content-promocion__title">CAMPAÑA: {{dataPromocionesSelected.name}} </span>
+
+        <div class="content-promocion__items">
+            <ion-item *ngIf="dataPromocionesSelected.U_Saldo">
+                <ion-label style="  font-size: 20px;" color="primary" position="floating">SALDO
+                    {{dataPromocionesSelected.U_Saldo}} {{monedalocal}} </ion-label>
+                <ion-input style="  font-size: 20px;" autocorrect="on" autofocus="on" maxlength="10" clearInput="true"
+                    clearOnEdit="true" [(ngModel)]="saldoPromo" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+            </ion-item>
+
+            <!-- <ion-button class="input-button-cancel" *ngIf="dataPromocionesSelected.U_Saldo" (click)="deletePromocion()">
+                <ion-icon name="close-circle-outline"></ion-icon>
+            </ion-button> -->
+            <button class="input-button-success" *ngIf="dataPromocionesSelected.U_Saldo"
+                (click)="aplicatePromocion()">Aplicar</button>
+        </div>
+    </ion-card>
+
+    <ion-card class="content-items">
+        <ion-list>
+            <ion-item (click)="getOptionsIdent()">
+                <ion-label color="primary" position="floating">Identificación del Cliente</ion-label>
+                <ion-input [(ngModel)]="tipoDocumentoName" readonly></ion-input>
+                <ion-icon name="wallet-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">R.U.C</ion-label>
+                <ion-input [disabled]="modificarInfTributaria" autocorrect="on"  maxlength="15"
+                    [(ngModel)]="nit" autofocus="on" clearInput="true" clearOnEdit="true" color="primary"
+                    inputmode="text" placeholder="" required="true"></ion-input>
+                <ion-icon name="wallet-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">Razon social</ion-label>
+                <ion-input [disabled]="modificarInfTributaria" maxlength="100" [(ngModel)]="razonsocial" autocorrect="on"
+                    autofocus="on" clearInput="true" clearOnEdit="true" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <div *ngIf="tablanit == '1'" class="content-button">
+                <ion-button size="small" style="border-radius: 0px; margin-right: 40%;" shape="round" color="primary" (click)="selectnit(0)">Buscar Nit 
+                    <ion-icon name="person-outline"></ion-icon>
+                </ion-button>
+
+                <ion-button size="small" style="border-radius: 0px;" shape="round" color="danger" (click)="selectnit(1)"> 
+                    <ion-icon name="close-circle-outline"></ion-icon>
+                </ion-button>
+            </div>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">Plazo entrega</ion-label>
+                <ion-datetime displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY" [pickerOptions]="{mode:'ios'}"
+                    min="{{minPiker}}" max="2025-12-00" [(ngModel)]="plazospago" [doneText]="'SELECCIONAR'"
+                    [cancelText]="'CANCELAR'">
+                </ion-datetime>
+                <ion-icon name="calendar-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item (click)="getOptions()">
+                <ion-label color="primary" position="floating">Condición de pago</ion-label>
+                <ion-input [(ngModel)]="condicionName" readonly></ion-input>
+                <ion-icon name="cash-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item *ngIf="condicion == '1000'">
+                <ion-label position="stacked">Numero de cuotas.</ion-label>
+                <ion-input type="number" (ionInput)="actionCantidacuotas($event)"></ion-input>
+            </ion-item>
+
+            <ion-grid *ngIf="condicion == '1000'">
+                <ion-row>
+                    <ion-col size="1"><b>N°</b></ion-col>
+                    <ion-col size="6"><b>Fechas</b></ion-col>
+                    <ion-col size="5"><b>monto</b></ion-col>
+                </ion-row>
+                <ion-row *ngFor="let inpu of arrinputs; index as i">
+                    <ion-col size="1" *ngIf="i < (arrinputs.length - 1)">
+                        <b style="margin-top: 1px;">{{i+1}}</b>
+                    </ion-col>
+                    <ion-col size="6" *ngIf="i < (arrinputs.length - 1)">
+                        <ion-datetime displayFormat="YYYY-DD-MM" value="{{inpu.DueDate}}"
+                            (ionChange)="actionChangeDuoDate($event)"></ion-datetime>
+                    </ion-col>
+                    <ion-col size="5" *ngIf="i < (arrinputs.length - 1)">
+                        <ion-input type="number" value="{{inpu.Total}}" (ionInput)="actionChangeMonto($event, i)">
+                        </ion-input>
+                    </ion-col>
+
+                    <ion-col size="1" *ngIf="i == (arrinputs.length - 1)">
+                        <b style="margin-top: 1px;">{{i+1}} </b>
+                    </ion-col>
+                    <ion-col size="6" *ngIf="i == (arrinputs.length - 1)">
+                        <ion-datetime [disabled]="true" displayFormat="YYYY-DD-MM" value="{{inpu.DueDate}}">
+                        </ion-datetime>
+                    </ion-col>
+                    <ion-col size="5" *ngIf="i == (arrinputs.length - 1)">
+                        <ion-input [disabled]="true" type="number" value="{{inpu.Total}}"></ion-input>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+            
+            <ion-item *ngIf="consolidador == '1'">
+                <ion-label color="primary" position="floating">Consolidador</ion-label>
+                <ion-textarea readonly="true" maxlength="255" [(ngModel)]="datosConsolidador" placeholder="..."></ion-textarea>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <div *ngIf="consolidador == '1'" class="content-button">
+                <ion-button size="small" style="border-radius: 0px; margin-right: 20%;" shape="round" color="primary" (click)="selectConsolidador(0)">Buscar Consolidador 
+                    <ion-icon name="person-outline"></ion-icon>
+                </ion-button>
+
+                <ion-button size="small" style="border-radius: 0px;" shape="round" color="danger" (click)="selectConsolidador(1)"> 
+                    <ion-icon name="close-circle-outline"></ion-icon>
+                </ion-button>
+            </div>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">Comentario</ion-label>
+                <ion-textarea maxlength="255" [(ngModel)]="comentariox" placeholder="..."></ion-textarea>
+                <ion-icon name="chatbox-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <!-- campos de usuario -->            
+            <!-- <ion-item>
+                <ion-label color="primary" position="floating">Cod. Transportista</ion-label>
+                <ion-input maxlength="100" [(ngModel)]="codTransportista" autocorrect="on" autofocus="on" clearInput="true" clearOnEdit="true" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">Nom. Transportista</ion-label>
+                <ion-input maxlength="100" [(ngModel)]="nomTransportista" autocorrect="on" autofocus="on" clearInput="true" clearOnEdit="true" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">R.U.C. Transportista</ion-label>
+                <ion-input maxlength="100" [(ngModel)]="rucTransportista" autocorrect="on" autofocus="on" clearInput="true" clearOnEdit="true" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item>
+
+            <ion-item>
+                <ion-label color="primary" position="floating">Dir. Transportista</ion-label>
+                <ion-input maxlength="100" [(ngModel)]="dirTransportista" autocorrect="on" autofocus="on" clearInput="true" clearOnEdit="true" color="primary" inputmode="text" placeholder=""
+                    required="true"></ion-input>
+                <ion-icon name="person-outline" color="primary" slot="end"></ion-icon>
+            </ion-item> -->
+        </ion-list>
+    </ion-card>
+
+    <div id="contenedorcampos">
+        
+    </div>
+
+    <br />
+    <br />
+    <br />
+</ion-content>
+
+<ion-footer class="single-footer">
+    <div class="grid-container">
+        <div class="grid-item">
+            <ion-chip style="height: 100%; height: 90%;
+            font-size: 16px; ">
+                <ion-label>Bruto: {{totalBruto | number : '1.2-2'}} {{monedalocal}}</ion-label>
+                <ion-icon name="cash-circle"></ion-icon>
+            </ion-chip>
+        </div>
+
+        <div class="grid-item">
+            <ion-chip style="height: 100%; height: 90%;
+            font-size: 16px; ">
+                <ion-label>Desc: {{totalDescuento | number : '1.2-2'}} {{monedalocal}}</ion-label>
+                <ion-icon name="cash-circle"></ion-icon>
+            </ion-chip>
+        </div>
+
+        <div class="grid-item">
+            <ion-chip style="height: 100%; height: 90%;
+            font-size: 16px; ">
+                <ion-label>Total: {{totalNeto | number : '1.2-2' }} {{monedalocal}}</ion-label>
+                <ion-icon name="cash-circle"></ion-icon>
+            </ion-chip>
+        </div>
+        <!-- <div class="grid-item">4</div>
+        <div class="grid-item">5</div>
+        <div class="grid-item">6</div> 
+        <div class="grid-item"> </div>
+        <div class="grid-item"> </div>
+        <div class="grid-item"> </div>-->
+    </div>
+    <div class="content-button">
+        <!--button class="button-send">Pagar</button-->
+        <ion-button [disabled]="btnSave" style="border-radius: 0px;" shape="round" color="primary"
+            (click)="confirmar(true)">Guardar
+            documento</ion-button>
+    </div>
+</ion-footer>

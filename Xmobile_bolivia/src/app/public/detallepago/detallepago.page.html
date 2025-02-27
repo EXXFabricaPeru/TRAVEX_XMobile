@@ -1,0 +1,101 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>COD: {{codPago}}</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="cerrar()">
+                <ion-icon color="medium" name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-card>
+        <ion-card-header>
+            <ion-card-subtitle><b>COD CLIENTE: </b>{{data.CardCode}}</ion-card-subtitle>
+            <ion-card-subtitle><b>CLIENTE: </b> {{data.CardName}}</ion-card-subtitle>
+            <ion-card-subtitle><b>ANTICIPOS: </b> {{((data.anticipos == 'null')?0:numberapp(data.anticipos)) | currency
+                : " " : " " }}
+            </ion-card-subtitle>
+        </ion-card-header>
+        <ion-button [disabled]="estadopagocuenta" (click)="pagos()" *ngIf="totalUSD == 0 && total == 0" expand="full"
+            color="primary">Pago a cuenta..
+        </ion-button>
+        <div [hidden]="estadomensaje1" style="text-align: center;">
+            <ion-label style="color: #FF0040;">** Pagos anticipados Deshabilitado **</ion-label>
+
+        </div>
+    </ion-card>
+    <ion-toolbar>
+        <ion-searchbar showCancelButton="never" placeholder="Buscar.." [(ngModel)]="searchData"
+            (ionChange)="buscarinput($event)"></ion-searchbar>
+        <ion-button slot="end" fill="clear" (click)="openCalendar()">
+            <ion-icon name="calendar"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+    <div style="display:none;">
+        <ion-datetime #datePickerfill [pickerOptions]="{mode:'ios'}" displayFormat="DD/MM/YYYY"
+            pickerFormat="DD/MM/YYYY" min="2020-01-01" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'"
+            (ionChange)="accionFecha($event)"></ion-datetime>
+    </div>
+    <ion-list>
+        <ion-item-sliding *ngFor="let item of documentosFactura; let i = index">
+            <ion-item>
+                <ion-checkbox slot="start" color="warning" [(ngModel)]="item.check" (ionChange)="xngListar()">
+                </ion-checkbox>
+                <ion-label>
+                    <p style="color:#0288d1"><b>Nro. FACTURA: </b> {{((item.codexternal == 'null')?'':item.codexternal)}}</p>
+                    <p *ngIf="item.ReserveInvoice=='Y'"><b>FACTURA </b>RESERVA: {{item.cod}}</p>
+                    <!-- {{item.cod}} -->
+                    <p *ngIf="item.ReserveInvoice=='N'"><b>FACTURA </b>DEUDOR: {{item.cod}}</p>
+                    <p><b>CREADO: </b> {{item.DocDate | date:'dd/MM/yyyy'}}</p>
+                    <p><b>PAGADO: </b>{{item.DocumentTotalPay -item.saldox | number}} {{item.currency}}</p>
+                    <div class="container-items">
+                        <p><b>DESCUENTO: </b>{{item.DocumentdescuentoTotal}} {{item.currency}}</p>
+                        <!-- <p><b>PAGADO: </b>{{item.pago }} {{item.currency}}</p> -->
+
+                        <p><b>SALDO: </b> {{item.saldox | number}} {{item.currency}}</p>
+
+                    </div>
+                    <div class="container-items">
+                        <p><b>C.C.: </b> {{(item.centrocosto == 'null')?'':item.centrocosto}}</p>
+                        <p *ngIf="item.unidadnegocio == 'null'"><b>U. N.: </b> Sin asignar</p>
+                        <p *ngIf="item.unidadnegocio != 'null'"><b>U. N.: </b> {{item.unidadnegocio}}</p>
+
+                    </div>
+                    <p><b>CUOTA: </b> {{item.cuota}}</p>
+                    <p style="color:#0288d1"><b>TOTAL: </b>{{item.DocumentTotalPay | currency: item.currency+' ' }}</p>
+
+                </ion-label>
+            </ion-item>
+            <ion-item-options side="end">
+                <ion-item-option (click)="cambioDePrecio(item, i)">
+                    <ion-icon name="cash" style="font-size: 40px"></ion-icon>
+                </ion-item-option>
+            </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+</ion-content>
+<ion-footer *ngIf="totalUSD > 0 || total > 0">
+    <ion-grid>
+        <ion-row color="primary" [ngClass]="'sinborder'">
+            <!-- <ion-col size="6" [ngClass]="'sinborder'">
+                <ion-button expand="full" color="primary" (click)="modalPagos(1)">
+                    USD. {{totalUSD | currency: ' ' }}
+                </ion-button>
+            </ion-col> -->
+            <ion-col size="12" [ngClass]="'sinborder'">
+                <ion-button [disabled]="estadopagoa" expand="full" color="primary" (click)="modalPagos(2)">
+                    {{total | currency: monedalocal}}
+                </ion-button>
+                <div [hidden]="estadomensaje2" style="text-align: center;">
+                    <ion-label style="color: #FF0040;">** Pago a facturas importadas Deshabilitado **</ion-label>
+                </div>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-footer>

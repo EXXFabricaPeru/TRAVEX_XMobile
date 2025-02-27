@@ -1,0 +1,46 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>REGISTRAR EQUIPO</small>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <br />
+    <br />
+    <br />
+    <ion-grid>
+        <ion-row center>
+            <ion-col size="1"></ion-col>
+            <ion-col size="12">
+
+                <ion-label color="primary" class="label__text">Identificador del equipo</ion-label>
+
+                <ion-item>
+                    <ion-input class="ion-text-center" [(ngModel)]="equiponame" maxlength="40" placeholder="Equipo-4"
+                        type="text"></ion-input>
+                </ion-item>
+            </ion-col>
+            <ion-col size="1"></ion-col>
+        </ion-row>
+    </ion-grid>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button expand="block" shape="round" *ngIf="!loding" (click)="confirmRegister()" color="primary">
+                    Enviar
+                </ion-button>
+                <ion-button expand="block" *ngIf="loding" shape="round" color="primary">
+                    <ion-spinner style="font-size: 30px !important;"></ion-spinner>
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

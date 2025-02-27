@@ -1,0 +1,48 @@
+<ion-app>
+    <ion-menu class="menuslider" menuId="menuxmobile">
+        <div class="imagenPerfil"></div>
+        <ion-content color="light">
+            <ion-grid>
+                <ion-row>
+                    <ion-col size="1"></ion-col>
+                    <ion-col size="11">
+                        <ion-list style="background-color:transparent !important">
+                            <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages">
+                                <ion-item (click)="eventRoute()" *ngIf="p.title != 'mk'" [routerDirection]="'root'"
+                                    [routerLink]="[p.url]" style="--ion-background-color:transparent !important"
+                                    lines="none">
+                                    <div *ngIf="p.est == true" slot="start" color="danger"
+                                        style="position: absolute !important; z-index: 3000;margin-top: -10px !important;">
+                                        <img src="../assets/notification.svg"
+                                            style="z-index: 3000; width: 15px; height: 15px" class="animated swing" />
+                                    </div>
+                                    <ion-icon style="color:#112848" slot="start" [name]="p.icon"></ion-icon>
+                                    <ion-label style="color:#112848">
+                                        {{p.title}}
+                                    </ion-label>
+                                </ion-item>
+                                <ion-item-divider color="light" style="height: 1px !important;" *ngIf="p.title == 'mk'">
+                                </ion-item-divider>
+                            </ion-menu-toggle>
+                            <ion-menu-toggle auto-hide="false">
+                                <ion-item lines="none" style="--ion-background-color:transparent !important"
+                                    (click)="closeSesion()">
+                                    <ion-icon style="color:#112848" slot="start" [name]="'log-out-outline'"></ion-icon>
+                                    <ion-label style="color:#222428">Cerrar Sesión</ion-label>
+                                </ion-item>
+                            </ion-menu-toggle>
+                            <ion-menu-toggle auto-hide="false">
+                                <ion-item lines="none" style="--ion-background-color:transparent !important"
+                                    (click)="exit()">
+                                    <ion-icon style="color:#112848" slot="power" [name]="'log-out-outline'"></ion-icon>
+                                    <ion-label style="color:#222428">Salir</ion-label>
+                                </ion-item>
+                            </ion-menu-toggle>
+                        </ion-list>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+        </ion-content>
+    </ion-menu>
+    <ion-router-outlet main></ion-router-outlet>
+</ion-app>

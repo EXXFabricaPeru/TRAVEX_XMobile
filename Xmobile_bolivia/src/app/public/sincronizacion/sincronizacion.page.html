@@ -1,0 +1,119 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="atrasBack()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>
+            <small>SINCRONIZACIÓN</small>
+        </ion-title>
+    </ion-toolbar>
+    <ion-item-divider color="primary">
+        <ion-label>IMPORTACIÓN EXPORTACIÓN</ion-label>
+        <ion-button slot="end" [disabled]="modeSincy" (click)="exportacionesApp()">Iniciar</ion-button>
+    </ion-item-divider>
+</ion-header>
+<ion-content>
+    <ion-list>
+        <ion-item-divider color="medium">
+            <ion-label>
+                EXPORTAR
+            </ion-label>
+        </ion-item-divider>
+
+        <ion-item>
+            <ion-label>
+                <ion-icon name="arrow-dropright"></ion-icon>
+                <ion-chip color="tertiary">{{totalexportClientes}}</ion-chip>
+                Clientes
+            </ion-label>
+            <ion-spinner slot="end" *ngIf="loadClientes"></ion-spinner>
+            <ion-button slot="end" fill="clear" (click)="exportaclientes()"
+                *ngIf="!loadClientes && loadClientesError == false">
+                <ion-icon name="arrow-up"></ion-icon>
+            </ion-button>
+            <ion-button slot="end" fill="clear" color="danger" *ngIf="loadClientesError">
+                <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+        </ion-item>
+        <ion-item>
+            <ion-label>
+                <ion-icon name="arrow-dropright"></ion-icon>
+                <ion-chip color="tertiary">{{totalexport}}</ion-chip>
+                Documentos
+            </ion-label>
+            <ion-spinner slot="end" *ngIf="loadPedidos"></ion-spinner>
+            <ion-button slot="end" fill="clear" (click)="exportDocumentos()"
+                *ngIf="!loadPedidos && loadPedidosError == false">
+                <ion-icon name="arrow-up"></ion-icon>
+            </ion-button>
+            <ion-button slot="end" fill="clear" color="danger" *ngIf="loadPedidosError">
+                <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+        </ion-item>
+        <ion-item>
+            <ion-label>
+                <ion-icon name="arrow-dropright"></ion-icon>
+                <ion-chip color="tertiary">{{totalexportpagos}}</ion-chip>
+                Cobros / pagos
+            </ion-label>
+            <ion-spinner slot="end" *ngIf="loadPagos"></ion-spinner>
+            <ion-button slot="end" fill="clear" (click)="exportPagos()" *ngIf="!loadPagos && loadPagosError == false">
+                <ion-icon name="arrow-up"></ion-icon>
+            </ion-button>
+            <ion-button slot="end" fill="clear" color="danger" *ngIf="loadPagosError">
+                <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+        </ion-item>
+        <ion-item>
+            <ion-label>
+                <ion-icon name="arrow-dropright"></ion-icon>
+                <ion-chip color="tertiary">0</ion-chip>
+                Multimedia
+            </ion-label>
+            <ion-spinner slot="end" *ngIf="loadMultimedi"></ion-spinner>
+            <ion-button slot="end" fill="clear" *ngIf="!loadMultimedi && loadMultimediaError == false"
+                (click)="subirMulti()">
+                <ion-icon name="arrow-up"></ion-icon>
+            </ion-button>
+            <ion-button [disabled]="true" slot="end" fill="clear" *ngIf="loadMultimediaError" color="danger">
+                <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+        </ion-item>
+        <ion-item-divider color="medium">
+            <ion-label>
+                IMPORTAR
+            </ion-label>
+        </ion-item-divider>
+        <ion-item *ngFor="let x of xDownloadData; let i = index">
+            <ion-label>
+                <ion-icon name="arrow-dropright"></ion-icon>
+                {{x.label}}
+            </ion-label>
+            <ion-spinner slot="end" *ngIf="xDownload[i]"></ion-spinner>
+            <ion-button slot="end" fill="clear" (click)="actionDownload(x.servis, i, x.objeto, x.type)"
+                *ngIf="!xDownload[i] && !xDownloadError[i]">
+                <ion-icon name="arrow-down"></ion-icon>
+            </ion-button>
+            <ion-button slot="end" fill="clear" color="danger" *ngIf="xDownloadError[i]">
+                <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+        </ion-item>
+    </ion-list>
+    <!-- <ion-item-divider color="medium">
+        <ion-label>
+            SINCRONIZAR MULTIMEDIA
+        </ion-label>
+    </ion-item-divider>
+    <ion-list>
+        <ion-item>
+            <ion-label>Multimedia {{totalImgCount}} de {{totalImg}}</ion-label>
+            <ion-spinner slot="end" *ngIf="loadImg"></ion-spinner>
+            <ion-button slot="end" fill="clear" *ngIf="!loadImg" (click)="donwloadImg()">
+                <ion-icon name="arrow-down"></ion-icon>
+            </ion-button>
+        </ion-item>
+    </ion-list>-->
+    <br /><br /><br />
+</ion-content>

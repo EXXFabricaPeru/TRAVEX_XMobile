@@ -1,0 +1,48 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small style="text-transform: uppercase;">{{titulo}}</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <app-net></app-net>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-searchbar placeholder="Buscar..." (ionChange)="searchInput($event)"></ion-searchbar>
+</ion-header>
+<ion-content>
+    <div style="margin: auto" *ngIf="loadItem">
+        <br/>
+        <br/>
+        <p class="ion-text-center">
+            <ion-spinner></ion-spinner>
+        </p>
+        <p class="ion-text-center">Cargando...</p>
+    </div>
+    <h4 class="ion-text-center" *ngIf="textLoad != ''">{{textLoad}}</h4>
+    <ion-list *ngIf="!loadItem">
+        <ion-item *ngFor="let item of items" (click)="findItem(item)">
+            <ion-label>
+                <p>ID: {{item.id}} </p>
+                <p><b>{{item.CardName}}</b></p>
+                <p>Hora: {{item.hora}} </p>
+                <p>Actividad: {{item.actvidad}} </p>
+                <p>Estado: {{item.estado}} </p>
+            </ion-label>
+        </ion-item>
+    </ion-list>
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+        <ion-infinite-scroll-content loadingText="Cargando...">
+        </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button color="warning" (click)="crearActividad()">
+            <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

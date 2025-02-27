@@ -1,0 +1,24 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons (click)="cierramapa()" slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>UBICACIÓN</small>
+        </ion-title>
+        <ion-buttons (click)="ubicacionDefault()" slot="end">
+            <ion-button color="warning">ASIGNAR POR DEFECTO</ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button (click)="disEnb()">
+                <ion-icon name="move"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-button color="danger" fill="clear" *ngIf="errorgps" expand="full">
+        <small style="text-align: center !important;">Cliente sin dirección tomare su ubicación actual.</small>
+    </ion-button>
+</ion-header>
+<ion-content>
+    <div class="map" id="map_canvas"></div>
+</ion-content>

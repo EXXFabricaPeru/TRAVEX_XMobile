@@ -1,0 +1,61 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>CONFIGURACIONES</small>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <br />
+    <br />
+    <ion-card>
+        <ion-card-content>
+            <ion-item class="tranparente">
+                <ion-label color="primary" position="stacked">Dirección IP</ion-label>
+                <ion-input [(ngModel)]="ip" type="text"></ion-input>
+            </ion-item>
+            <ion-item class="tranparente">
+                <ion-label color="primary" position="stacked">Puerto</ion-label>
+                <ion-input [(ngModel)]="puerto" type="text"></ion-input>
+            </ion-item>
+            <ion-item class="tranparente">
+                <ion-label color="primary" position="stacked">Directorio</ion-label>
+                <ion-input [(ngModel)]="dir" type="text"></ion-input>
+            </ion-item>
+        </ion-card-content>
+    </ion-card>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2"></ion-col>
+            <ion-col size="8">
+                <ion-button expand="block" (click)="save()" shape="round" color="primary">
+                    Guardar
+                </ion-button>
+            </ion-col>
+            <ion-col size="2"></ion-col>
+        </ion-row>
+    </ion-grid>
+
+    <p class="text-label uuid"><label class="centros-label">UUID (Centro seleccionado): </label>{{uuidLocal}} </p>
+
+    <div *ngIf="dataLocal.length > 0 ">
+
+
+        <div class="centros--container" *ngFor="let value of dataLocal">
+
+            <p class="text-label"><label class="centros-label "> CENTRO: </label>{{value.name}} </p>
+            <p class="text-label"><label class="centros-label">SERVER: </label> {{value.ip}}:{{value.puerto}}
+            </p>
+
+            <button class="btn--delete-centro" (click)="deleteStorage(value)">
+                <ion-icon name="trash-outline"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+
+
+</ion-content>

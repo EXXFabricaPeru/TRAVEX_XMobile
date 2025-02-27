@@ -1,0 +1,92 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <!-- <ion-buttons *ngIf="databasex != '' && databasex != 'SELECCIONAR.' " slot="end">
+            <ion-button (click)="settingsDeleteData()">
+
+                <ion-icon color="primary" name="folder"></ion-icon>
+            </ion-button>
+        </ion-buttons> -->
+        <ion-buttons slot="end">
+            <ion-button (click)="settings()">
+                <ion-icon color="primary" name="settings"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content id="loginback">
+    <p class="ion-text-center">
+        <img src="../../assets/logo_exxis.png" style="width: 4rem; margin: 0 auto" />
+    </p>
+    <p class="ion-text-center">
+        <img src="../../assets/logologin.png" class="logologin" />
+
+    </p>
+    <div style="display: flex; justify-content: center">
+        <div style="align-self: center">Iniciar sesión Offline</div>
+        <ion-toggle [(ngModel)]="loginOffline"></ion-toggle>
+
+    </div>
+    <ion-card>
+        <ion-card-content>
+            <ion-item (click)="direccciones()">
+                <ion-icon slot="start" name="server-sharp"></ion-icon>
+                <ion-label color="warning" position="stacked">Centro</ion-label>
+                <ion-input [(ngModel)]="databasex" readonly type="text"></ion-input>
+            </ion-item>
+            <ion-item>
+                <ion-icon slot="start" name="person"></ion-icon>
+                <ion-label color="warning" position="stacked">Usuario</ion-label>
+                <ion-input [(ngModel)]="username" type="text"></ion-input>
+                <!-- <input type="text" [(ngModel)]="username" maxlength="30" class="login--input"> -->
+            </ion-item>
+            <ion-item class="tranparente">
+                <ion-icon slot="start" name="key"></ion-icon>
+                <ion-label color="warning" position="stacked">Password</ion-label>
+                <ion-input [(ngModel)]="password" maxlength="35" type="password"></ion-input>
+            </ion-item>
+        </ion-card-content>
+    </ion-card>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button expand="block" shape="round" *ngIf="!loding" (click)="login()" color="primary">
+                    Iniciar sesión
+                </ion-button>
+                <ion-button expand="block" *ngIf="loding" shape="round" color="primary">
+                    <ion-spinner style="font-size: 30px !important;"></ion-spinner>
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <p class="ion-text-center">
+                    <small>Xmobile Prod</small> Tr2.2.13
+                </p>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button fill="clear" expand="block" shape="round" (click)="resgiter()" color="primary">
+                    Registrar equipo
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="actionTouchLogin()">
+        <ion-fab-button color="light">
+            <ion-icon name="finger-print" class="animated pulse infinite"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

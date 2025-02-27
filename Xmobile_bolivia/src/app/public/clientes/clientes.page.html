@@ -1,0 +1,54 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small class="textA">{{titulo}}</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <app-net></app-net>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-searchbar maxlength="30" placeholder="Buscar" (ionChange)="searchInput($event)"></ion-searchbar>
+</ion-header>
+<ion-content>
+    <div style="margin: auto" *ngIf="loadItem">
+        <br/>
+        <p class="ion-text-center">
+            <ion-spinner></ion-spinner>
+        </p>
+        <p class="ion-text-center">Cargando...</p>
+    </div>
+    <p class="ion-text-center" *ngIf="textLoad != ''">
+        <small>{{textLoad}}</small>
+    </p>
+    <ion-list *ngIf="!loadItem">
+        <ion-item *ngFor="let item of items" (click)="findItem(item)">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p *ngIf="item.activo == 'N'"><b>Estado: Inactivo</b><ion-icon name="warning-outline" [style]="'color:#FF0000'"></ion-icon> </p>
+                <p>COD: {{item.CardCode}}</p>
+                <p><b>{{item.CardName}}</b></p>
+                <p>R.U.C: {{item.FederalTaxId}} </p>
+                <b>RZN: {{item.razonsocial}} </b>
+            </ion-label>
+            <b slot="end" *ngIf="oringen != 'all' && oringen != 'age'">
+                <p>T. Deuda</p>
+                <p>{{item.totalNeto}}</p>
+            </b>
+        </ion-item>
+    </ion-list>
+    <ion-infinite-scroll threshold="200px" (ionInfinite)="loadData($event)">
+        <ion-infinite-scroll-content loadingText="Cargando...">
+        </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="oringen == 'all'">
+        <ion-fab-button color="medium" mode="ios" translucent="ios" (click)="crearCliente()">
+            <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

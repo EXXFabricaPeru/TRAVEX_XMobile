@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar color="primary">
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+          Agenda
+      </ion-title>
+      <ion-buttons slot="end">
+          <ion-button (click)="editar()">
+              <ion-icon name="copy"></ion-icon>
+          </ion-button>
+      </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-card>
+      <ion-card-content>
+          <ion-list-header color="primary">
+              <ion-label>Actividad</ion-label>
+          </ion-list-header>
+          <p><b>Id:</b> {{data.id}} </p>
+          <p><b>Nombre:</b> {{data.CardName}} </p>
+          <p><b>Teléfono:</b> {{data.PhoneNumber}} </p>
+          <p><b>Fecha:</b> {{data.fecha}} </p>
+          <p><b>Hora:</b> {{data.hora}} </p>
+          <p><b>Actividad:</b> {{data.actvidad}} </p>
+          <ion-list-header color="primary">
+            <ion-label>Actualizar</ion-label>
+          </ion-list-header>
+          <ion-item>
+            <ion-label position="stacked">Comentarios</ion-label>
+            <ion-input type="text" [(ngModel)]="comentarios"></ion-input>
+        </ion-item>
+          <ion-item (click)="selectAsunto()">
+            <ion-label position="stacked">Asunto</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="AsuntoDescripcion"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+          </ion-item>
+          <ion-item (click)="selectEstado()">
+            <ion-label position="stacked">Estado</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="EstadoDescripcion"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+          </ion-item>      
+      </ion-card-content>
+  </ion-card>
+  <ion-grid>
+    <ion-row>
+        <ion-col size="2">
+        </ion-col>
+        <ion-col size="8">
+            <ion-button expand="block" shape="round" (click)="Update()" color="primary">
+                {{textAction}}
+            </ion-button>
+        </ion-col>
+        <ion-col size="2">
+        </ion-col>
+    </ion-row>
+</ion-grid>
+</ion-content>

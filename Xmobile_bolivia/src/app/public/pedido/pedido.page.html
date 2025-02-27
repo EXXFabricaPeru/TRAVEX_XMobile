@@ -1,0 +1,395 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="backCancel()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+        <ion-title>
+            <small>{{codDocumento}} 
+                <div *ngIf="titulo=='FACTURA' && tipoFactura==0 && usaFacturaReserva=='0'">Factura de Deudor </div>
+                <div *ngIf="titulo=='FACTURA' && tipoFactura==1 && usaFacturaReserva=='0'">Factura de Reserva </div>
+            </small>
+        </ion-title>
+
+        <ion-buttons slot="end" style="background-color: #6470c9;" *ngIf="titulo=='FACTURA' && pedidoData.tipoestado == 'new' && usaFacturaReserva=='1'">
+            <ion-button (click)="cambiatipofactura()">
+                <div *ngIf="titulo=='FACTURA' && tipoFactura==0">Factura de Deudor </div><div *ngIf="titulo=='FACTURA' && tipoFactura==1">Factura de Reserva </div>
+            </ion-button>
+        </ion-buttons>
+
+       <!-- <ion-button (click)="muestrafirma()">
+            <ion-icon style="color:#ffce00" slot="icon-only" name="save" class="animated infinite heartBeat">
+            </ion-icon>
+        </ion-button>-->
+
+
+         <ion-buttons slot="end" *ngIf="items.length > 0">
+            <ion-button [disabled]="btnSave" *ngIf="pedidoData.tipoestado == 'new' || pedidoData.tipoestado == 'null'"
+                (click)="datosAdicionales()">
+                <ion-icon style="color:#ffce00" slot="icon-only" name="save" class="animated infinite heartBeat">
+                </ion-icon>
+            </ion-button>
+
+
+            <ion-button
+                *ngIf="vernotaventa == 1 && pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null' && pedidoData.origen != 'outer' && pedidoData.DocType == 'DFA'"
+                (click)="generaEntrega()">
+                <ion-icon slot="icon-only" name="archive-outline"></ion-icon>
+            </ion-button>
+
+
+            <ion-button  *ngIf="pedidoData.DocType == 'DFA' && pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null'" (click)="web()">
+                <ion-icon slot="icon-only" name="globe-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button
+                *ngIf="vercontrato == 1 && pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null' && pedidoData.origen != 'outer' && pedidoData.DocType == 'DFA' && pedidoData.PayTermsGrpCode > 0"
+                (click)="generaContrato()">
+                <!--<ion-button (click)="generaContrato()">-->
+                <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
+            </ion-button>
+
+            <!--<ion-button *ngIf="titulo=='FACTURA' &&  pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null'"
+                (click)="generateCollilla()">
+                <ion-icon slot="icon-only" name="bookmark"></ion-icon>
+            </ion-button>-->
+            <ion-button
+                *ngIf="pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null' && pedidoData.origen != 'outer'"
+                (click)="generaPDF()">
+                <ion-icon slot="icon-only" name="document"></ion-icon>
+            </ion-button>
+
+            <ion-button *ngIf="pedidoData.tipoestado != 'new' && pedidoData.tipoestado != 'null'"
+                (click)="popOver($event)">
+                <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-progress-bar type="indeterminate" *ngIf="isenabled" reversed="true"></ion-progress-bar>
+</ion-header>
+<ion-content>
+
+    <ion-grid *ngIf="CardName != ''">
+        <ion-list>
+            <ion-item [disabled]="estado">
+                <ion-avatar slot="start">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label position="floating">{{textFecha}}</ion-label>
+                <ion-datetime [disabled]="true" [pickerOptions]="{mode:'ios'}" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
+                    min="2020-01-01" max="2022-01-01" [(ngModel)]="timenetrega" [doneText]="'Seleccionar'"
+                    [cancelText]="'Cancelar'">
+                </ion-datetime>
+            </ion-item>
+
+            <ion-item (click)="getAlmacen(3)" [disabled]="estado">
+                <ion-avatar slot="start">
+                    <ion-icon name="bag-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2>Almacén</h2>
+                    <h3>{{almacenarr.WarehouseName}}</h3>
+                </ion-label>
+            </ion-item>
+
+            <ion-item [disabled]="estado">
+                <ion-avatar slot="start">
+                    <ion-icon name="person-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2> Cliente </h2>
+                    <h3>{{CardCode}} - {{CardName}}
+                        <ion-button size="small" fill="clear" slot="end" (click)="detalleCliente()">
+                            <ion-icon name="open"></ion-icon>
+                        </ion-button>
+                    </h3>
+                </ion-label>
+            </ion-item>
+            <!--
+            <ion-item>
+                <ion-avatar slot="start">
+                    <ion-icon name="navigate-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2>Dirección</h2>
+                    <h3>{{(Address == 'null')?'Sin dirección especificada':Address}}</h3>
+                </ion-label>
+            </ion-item>
+        -->
+
+            <ion-item (click)="listarSucursal(false)" [disabled]="estado">
+                <!----[ngClass]="activoOptionsData" -->
+                <ion-avatar slot="start">
+                    <ion-icon name="location-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2>Sucursal</h2>
+                    <h3>{{selectSucursal.typeLabel}} - {{selectSucursal.AddresName}} #  {{(selectSucursal.Street == 'null')?'':selectSucursal.Street}}</h3>
+                </ion-label>
+            </ion-item>
+
+            <ion-item (click)="listarGrupoProductos(true)" [disabled]="estado">
+                <ion-avatar slot="start">
+                    <ion-icon name="bookmarks-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2>Grupo de productos</h2>
+                    <h3>{{grupoproductostext}}
+                        <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+                    </h3>
+                </ion-label>
+            </ion-item>
+
+            <ion-item (click)="listarPrecios(true)" [disabled]="estado">
+                <!---*ngIf="tipo =='null'"-->
+                <ion-avatar slot="start">
+                    <ion-icon name="cash-outline"></ion-icon>
+                </ion-avatar>
+                <ion-label>
+                    <h2>Lista de precio</h2>
+                    <h3>{{litPreciosSelect.PriceListName}}
+                        <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+                    </h3>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+    </ion-grid>
+
+    <ion-grid *ngIf="!estado">
+        <ion-row>
+            <ion-col size="9">
+                <ion-button *ngIf="clonado == 0 && descuentoDelTotalPorcentual==0 " [disabled]="estado" color="medium"
+                    shape="round" expand="full" (click)="agregarProductos()">
+                    Agregar producto
+                </ion-button>
+            </ion-col>
+            <ion-col size="3">
+                <ion-button [disabled]="estado" color="success" fill="clear" (click)="cambiarMoneda(true)">
+                    {{Currency}}
+                    <small *ngIf="Moneda == '##'">[Mult.]</small>
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+    <p *ngIf="cantidadItemsTexto" class="ion-text-center">
+        <small>NO SE ENCONTRÓ NINGÚN ITEM</small>
+    </p>
+
+    <!--ion-list *ngIf="bonificaciontext!=''">
+  
+        <ion-item [disabled]="estado" (click)="verificadorBonificaciones()">
+            <ion-label class="ion-text-wrap">
+                <b>{{bonificaciontext}}</b>
+            </ion-label>
+            <ion-icon name="caret-down-sharp" class="animated bounceIn" slot="end"></ion-icon>
+        </ion-item>
+    </ion-list-->
+    
+    <ion-list *ngIf="cantidadItems">
+        <ion-item-sliding *ngFor="let item of items" class="animated fadeIn">
+            <ion-item>
+                <ion-label *ngIf="item.faltalote == 0" class="ion-text-wrap">
+                    <p (click)="detalleProductoVenta(item)">
+                        <ion-chip color="warning">
+                            <ion-label>{{item.Quantity}}</ion-label>
+                        </ion-chip>
+                        <b class="container--unidad">{{item.unidadid}}</b>
+                        {{item.ItemCode}}, {{item.Dscription}}
+                    </p>
+                    
+                    <div *ngIf="item.lotesUsados.length>0" class="lotes--container">
+                        <h1 class="title--lotes">
+                            Lotes
+                        </h1>
+                        <div class="lotes--div">
+                            <div *ngFor="let value of item.lotesUsados" class="item--serie">
+                                <b class="item--lote">{{value.lote}}</b>
+                                <span> ({{value.cant}}) </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="item.seriesUsados.length>0" class="lotes--container">
+                        <h1 class="title--lotes">
+                            Series
+                        </h1>
+                        <div class="lotes--div">
+                            <div *ngFor="let value of item.seriesUsados" class="item--serie">
+                                <b>{{value.serie}}</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="item.combos > 0">
+                        <p style="color: #7044ff; font-size: 13px !important;" (click)="cambioProductoCombo(prod)"
+                            *ngFor="let prod of item.productos" fill="clear" size="small" expand="full">
+                            <ion-icon name="arrow-dropright"></ion-icon>
+                            ({{prod.Quantity * item.Quantity}}) {{prod.ItemName}}
+                        </p>
+                    </div>
+
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>TOTAL BRUTO. {{(item.Quantity * item.Price)| currency: Moneda+' '}} </b>
+                    </p>
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>Precio unitario. </b>{{item.Price | currency: Moneda+' ':'symbol':'1.2-4' }}
+                    </p>
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>Total descuento. </b>{{item.U_4DESCUENTO | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==2 || localizacion==4" (click)="detalleProductoVenta(item)">
+                        <b>Total {{indicador_impuesto}} Porcentual. </b>{{item.ICEp | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==2" (click)="detalleProductoVenta(item)">
+                        <b>Total {{indicador_impuesto}} Especifico. </b>{{item.ICEe | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==3" (click)="detalleProductoVenta(item)">
+                        <b>Total IVA. </b>{{item.ICEe | currency: Moneda+' '}}
+                    </p>
+                    <p style="color:#0288d1" (click)="detalleProductoVenta(item)">
+                        <b style="color:#0288d1">TOTAL NETO. </b>{{(item.xneto) | currency: Moneda+' '}}
+                    </p>
+                </ion-label>
+
+                <ion-label *ngIf="item.faltalote == 1" class="ion-text-wrap" style="background-color: #ffdede;">
+                    <p (click)="detalleProductoVenta(item)">
+                        <ion-chip color="warning">
+                            <ion-label>{{item.Quantity}}</ion-label>
+                        </ion-chip>
+                        <b class="container--unidad">{{item.unidadid}}</b>
+                        {{item.ItemCode}}, {{item.Dscription}}
+                    </p>
+
+                    <div *ngIf="item.lotesUsados.length>0" class="lotes--container">
+                        <h1 class="title--lotes">
+                            Lotes
+                        </h1>
+                        <div class="lotes--div">
+                            <div *ngFor="let value of item.lotesUsados" class="item--serie">
+                                <b class="item--lote">{{value.lote}}</b>
+                                <span> ({{value.cant}}) </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="item.seriesUsados.length>0" class="lotes--container">
+                        <h1 class="title--lotes">
+                            Series
+                        </h1>
+                        <div class="lotes--div">
+                            <div *ngFor="let value of item.seriesUsados" class="item--serie">
+                                <b>{{value.serie}}</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="item.combos > 0">
+                        <p style="color: #7044ff; font-size: 13px !important;" (click)="cambioProductoCombo(prod)"
+                            *ngFor="let prod of item.productos" fill="clear" size="small" expand="full">
+                            <ion-icon name="arrow-dropright"></ion-icon>
+                            ({{prod.Quantity * item.Quantity}}) {{prod.ItemName}}
+                        </p>
+                    </div>
+                    
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>TOTAL BRUTO. {{(item.Quantity * item.Price)| currency: Moneda+' '}} </b>
+                    </p>
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>Precio unitario. </b>{{item.Price | currency: Moneda+' ':'symbol':'1.2-4' }}
+                    </p>
+                    <p (click)="detalleProductoVenta(item)">
+                        <b>Total descuento. </b>{{item.U_4DESCUENTO | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==2" (click)="detalleProductoVenta(item)">
+                        <b>Total ICE Porcentual. </b>{{item.ICEp | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==2" (click)="detalleProductoVenta(item)">
+                        <b>Total ICE Especifico. </b>{{item.ICEe | currency: Moneda+' '}}
+                    </p>
+                    <p *ngIf="localizacion==3" (click)="detalleProductoVenta(item)">
+                        <b>Total IVA. </b>{{item.ICEe | currency: Moneda+' '}}
+                    </p>
+                    <p style="color:#0288d1" (click)="detalleProductoVenta(item)">
+                        <b style="color:#0288d1">TOTAL NETO. </b>{{(item.xneto) | currency: Moneda+' '}}
+                    </p>
+                </ion-label>
+                
+                <ion-chip slot="end" color="success" *ngIf="item.bonificacion=='1'">
+                    <!-- 1 era bonificacion -->
+                    <small>Bon/Desc</small>
+                </ion-chip>
+                <ion-chip slot="end" color="success" *ngIf="item.bonificacion == 2">
+                    <!-- 2 descuento bono -->
+                    <small>Desc.</small>
+                </ion-chip>
+                <ion-chip slot="end" color="danger" *ngIf="item.faltalote == 1">
+                    <!-- 2 descuento bono -->
+                    <small>Falta Lote.</small>
+                </ion-chip>
+            </ion-item>
+            <ion-item-options side="end">
+                <ion-item-option color="medium" shape="round" fill="outline" (click)="detalleProducto(item)">
+                    <ion-icon name="open" style="font-size: 30px; margin-right: 10px;margin-left: 10px;"></ion-icon>
+                </ion-item-option>
+                <ion-item-option *ngIf="clonado == 0 " [disabled]="estado" color="medium" shape="round" fill="outline"
+                    (click)="eliminarProducto(item)">
+                    <ion-icon name="trash" style="font-size: 30px; margin-right: 10px;margin-left: 10px;"></ion-icon>
+                </ion-item-option>
+            </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+    <br />
+    <ion-button *ngIf="clonado != 0 " expand="block" fill="clear" shape="round" color="primary">
+        <small>REF:{{clonado}}</small>
+    </ion-button>
+    <br />
+</ion-content>
+<ion-toolbar *ngIf="items.length > 0" color="medium" class="animated fadeIn">
+    <ion-grid>
+        <ion-row>
+            <ion-col size="6">
+                <small>Total bruto: {{totalnetox | currency: Moneda+' '}}</small>
+            </ion-col>
+            <ion-col size="6">
+                <small>
+                    <!--Total descuento: {{totaldescuentox | currency: Moneda+' '}}-->
+                </small>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="4">
+                <small>Des. Porc. Global</small>
+            </ion-col>
+            <ion-col size="4">
+                <small>Des. Monetario</small>
+            </ion-col>
+            <ion-col size="4">
+                <small>Total</small>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">
+                <ion-button (click)="masdescuentoporsentual()" fill="outline" [disabled]="estado || clonadoEstado"
+                    color="primary" expand="full">
+                    <!-- -->
+                    {{descuentoDelTotalPorcentual}}
+                </ion-button>
+            </ion-col>
+            <ion-col size="4">
+                <ion-button fill="outline" (click)="masdescuento()" [disabled]="estado  || clonadoEstado"
+                    color="primary" expand="full">
+                    <!--(click)="masdescuento()"  descuentoDelTotal -->
+                    {{totaldescuentox| currency: Moneda+' '}}
+                </ion-button>
+            </ion-col>
+            <ion-col size="5">
+                <ion-button fill="outline" color="primary" expand="full">
+                    {{(total) | currency: Moneda+' '}}
+                    <!-- - descuentoDelTotal-->
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-toolbar>

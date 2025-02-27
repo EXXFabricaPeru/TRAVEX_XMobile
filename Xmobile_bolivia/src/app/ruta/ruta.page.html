@@ -1,0 +1,52 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small>RUTA DE CLIENTES</small>
+        </ion-title>
+        <ion-buttons *ngIf="tipoVendedor!=100 " slot="end">
+            <ion-button fill="clear" (click)="reloadMap()">
+                <ion-icon name="refresh-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+        <ion-buttons *ngIf="onlyCustomers" slot="end">
+            <ion-button fill="clear" (click)="reloadMap()">
+                <ion-icon name="refresh-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+        <ion-buttons *ngIf="tipoVendedor==1" slot="end">
+            <ion-datetime class="calendar" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'" (click)="clickMap()"
+                [(ngModel)]="fechaData" displayFormat="DD-MM-YYYY" min="2021-01-01" max="3022-01-01"
+                (ionChange)="accionFecha()">
+            </ion-datetime>
+            <ion-icon (click)="resetmap()" name="calendar"></ion-icon>
+        </ion-buttons>
+        <!-- <ion-buttons *ngIf="tipoVendedor==1" slot="end">
+            <ion-button fill="clear" (click)="showDatesRoutes()">
+
+                <ion-icon slot="icon-only" name="alert-circle-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons> -->
+        <ion-buttons *ngIf="tipoVendedor==0" slot="end">
+            <ion-button (click)="presentAlertRadioDias()">
+                <ion-icon slot="icon-only" name="analytics-outline"></ion-icon>
+
+            </ion-button>
+
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-progress-bar type="indeterminate" *ngIf="isenabled" reversed="true"></ion-progress-bar>
+</ion-header>
+<ion-content>
+    <div class="map" id="map_canvas">
+    </div>
+</ion-content>
+<ion-footer>
+    <!--ion-button expand="full" color="warning" (click)="selectCliente()">
+        <small>Selecionar cliente para trazar ruta</small>
+    </ion-button-->
+</ion-footer>

@@ -1,0 +1,48 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            <small>ANULAR DOCUMENTO</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="cerrar(false)">
+                <ion-icon color="medium" name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <br />
+    <ion-card>
+        <ion-card-content>
+            <p>Después de anular el documento se notificará a xMobile.</p>
+            <p>Puede tardar algunas horas en reconocer el documento anulado.</p>
+        </ion-card-content>
+    </ion-card>
+    <ion-item (click)="getOptions()">
+        <ion-label position="stacked">
+            Motivo de la anulación
+        </ion-label>
+        <ion-input maxlength="50" [(ngModel)]="opcionAnular" readonly></ion-input>
+        <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+    </ion-item>
+    <br />
+    <ion-card [ngClass]="'altoCaja2'">
+        <ion-card-content>
+            <ion-textarea maxlength="255" [(ngModel)]="conceptoAnulacion" placeholder="El concepto del porque...">
+            </ion-textarea>
+        </ion-card-content>
+    </ion-card>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button expand="block" shape="round" color="primary" (click)="enviarAnulacion()">
+                    Continuar
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

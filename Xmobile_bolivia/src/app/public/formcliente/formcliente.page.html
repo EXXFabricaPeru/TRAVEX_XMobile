@@ -1,0 +1,252 @@
+<ion-header translucent>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-button (click)="backCancel()">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>
+            Cliente
+        </ion-title>
+    </ion-toolbar>
+    <ion-progress-bar *ngIf="loadImgCamera == true" type="indeterminate" reversed="true" buffer="0.5" color="warning">
+    </ion-progress-bar>
+</ion-header>
+<ion-content>
+    <ion-card (click)="selectImage()">
+        <ion-img [src]="imagen" style="height:150px"></ion-img>
+
+        <ion-card-header>
+            <ion-card-subtitle>
+                <p class="ion-text-center">Captura tu imagen</p>
+            </ion-card-subtitle>
+        </ion-card-header>
+    </ion-card>
+    
+    <ion-card name="camposClienfte">
+        <ion-list-header color="medium">
+            <ion-label>Datos del cliente</ion-label>
+        </ion-list-header>
+        <ion-item>
+            <ion-label position="stacked">Código</ion-label>
+            <ion-input type="text" maxlength="30" [disabled]="true" [(ngModel)]="codCliente"></ion-input>
+            <ion-label position="stacked">Nombre cliente(*)</ion-label>
+            <ion-input type="text" maxlength="30" [(ngModel)]="nombreCliente"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Razón social(*)</ion-label>
+            <ion-input type="text" maxlength="30" [(ngModel)]="razonsocial"></ion-input>
+        </ion-item>
+        <ion-item (click)="getOptionsIdent()">
+            <ion-label color="primary" position="floating">Identificación del Cliente</ion-label>
+            <ion-input [(ngModel)]="tipoDocumentoName" readonly></ion-input>
+            <ion-icon name="wallet-outline" color="primary" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item>
+            <ion-label color="primary" position="floating">Tipo de Persona</ion-label>
+            
+            <ion-select [(ngModel)]="tipoPersonaCode">
+                <ng-container *ngFor="let tpoPer of tipoPersona">
+                    <ion-select-option  value="{{ tpoPer.Val }}">{{ tpoPer.Desc }}</ion-select-option>
+                </ng-container>
+            </ion-select>
+        </ion-item>
+
+        <ion-item *ngIf="tipoPersonaCode=='TPN'">
+            <ion-label position="stacked">Apellido Paterno</ion-label>
+            <ion-input type="text" maxlength="50" [(ngModel)]="apellidoPaterno" ></ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="tipoPersonaCode=='TPN'">
+            <ion-label position="stacked">Apellido Materno</ion-label>
+            <ion-input type="text" maxlength="50" [(ngModel)]="apellidoMaterno" ></ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="tipoPersonaCode=='TPN'">
+            <ion-label position="stacked">Primer Nombre</ion-label>
+            <ion-input type="text" maxlength="50" [(ngModel)]="primerNombre" ></ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="tipoPersonaCode=='TPN'">
+            <ion-label position="stacked">Segundo Nombre</ion-label>
+            <ion-input type="text" maxlength="50" [(ngModel)]="segundNombre" ></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">{{numeroIdentificacionTributariaLabel}}(*)</ion-label>
+            <ion-input type="tel" maxlength="13" [(ngModel)]="nitci" (ngModelChange)="generacode2()" id="txtRUC"></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Complemento</ion-label>
+            <ion-input type="email" maxlength="5" placeholder="" [(ngModel)]="complemento"></ion-input>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Teléfono</ion-label>
+            <ion-input type="tel" maxlength="20" [(ngModel)]="telefonoEmp"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Celular(*)</ion-label>
+            <ion-input type="tel" maxlength="50" [(ngModel)]="telefonoCel"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Correo electrónico(*)</ion-label>
+            <ion-input type="email" maxlength="30" placeholder="dato@ejemplo.com" [(ngModel)]="email"></ion-input>
+        </ion-item>
+
+        <ion-item *ngIf="fex_tipo == '1'" (click)="getOptionsexcepcion()">
+            <ion-label color="primary" position="floating">Excepciòn</ion-label>
+            <ion-input [(ngModel)]="codigoexcepcion" readonly></ion-input>
+            <ion-icon name="wallet-outline" color="primary" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item (click)="selectEmpresa()" style="display: none;">
+            <ion-label position="stacked">Tipo de Empresa</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="tipoEmpresa"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Comentario / Observación</ion-label>
+            <ion-input type="email" maxlength="50" placeholder="" [(ngModel)]="comentario"></ion-input>
+        </ion-item>
+
+        <ion-item (click)="listarTerritorios()">
+            <ion-label color="primary" position="stacked">
+              Territorio(*)</ion-label>
+            <ion-label>
+              <h3>{{u_territorio2}}
+                <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+              </h3>
+            </ion-label>
+        </ion-item>
+    </ion-card>
+
+    <ion-card name="camposCliente">
+        <ion-list-header color="medium">
+            <ion-label>Dirección (*)</ion-label>
+            <!-- <ion-button fill="clear" (click)="addDireccion()">
+                <ion-icon name="{{ dataDireccion && dataDireccion != ''?'create':'add'}}" style="color:#ffffff; font-size: 25px"></ion-icon>
+            </ion-button> -->
+        </ion-list-header>
+        <ion-item>
+            <ion-label position="stacked">Dirección Fiscal</ion-label>
+            <ion-input type="text" maxlength="80" [(ngModel)]="dataDireccion"></ion-input>
+        </ion-item>
+    </ion-card>
+
+    <div id="contenedorcampos">
+
+    </div>
+
+    <ion-card name="camposCliente">
+        <ion-list-header color="medium">
+            <ion-label>Personas de Contacto</ion-label>
+            <ion-button fill="clear" (click)="alertContactPerson()">
+                <ion-icon name="add" style="color:#ffffff; font-size: 25px"></ion-icon>
+            </ion-button>
+        </ion-list-header>
+        <ion-list *ngIf="personaContacto.length==0">
+            <ion-item>
+                <ion-label position="stacked">Sin registros.
+                </ion-label>
+            </ion-item>
+        </ion-list>
+        <ion-list *ngIf="personaContacto">
+            <ion-item-sliding *ngFor="let pers of personaContacto" class="animated fadeIn">
+                <ion-item>
+                    <ion-label>
+                        <p><b>Nombre:</b> {{(pers.nombrePersonaContacto == "null")?'':pers.nombrePersonaContacto}}</p>
+                        <p><b>Cargo:</b>{{(pers.tituloPersonaContacto == "null")?'':pers.tituloPersonaContacto}}</p>
+                        <p><b>Teléfono:</b>{{(pers.fonoPersonaContacto == "null")?'':pers.fonoPersonaContacto}}</p>
+                        <p><b>Email:</b>{{(pers.correoPersonaContacto == "null")?'':pers.correoPersonaContacto}}</p>
+                        <p><b>Comentario:</b> {{(pers.comentarioPersonaContacto == 'null')?'':pers.comentarioPersonaContacto}}</p>
+                    </ion-label>
+                    <ion-icon *ngIf="textAction=='Registrar'" class="animated wobble" name="arrow-back" color="medium"
+                        slot="end"></ion-icon>
+                </ion-item>
+                <ion-item-options *ngIf="textAction=='Registrar'" side="end">
+                    <ion-item-option color="danger" shape="round" fill="outline" expandable="true"
+                        (click)="contactPersonDelete(pers)">
+                        <ion-icon name="trash" style="font-size:25px"></ion-icon>
+                    </ion-item-option>
+                </ion-item-options>
+            </ion-item-sliding>
+        </ion-list>
+    </ion-card>
+
+    <ion-card name="camposCliente">
+        <ion-list-header color="medium">
+            <ion-label>Seleccione los dias de visita</ion-label>
+        </ion-list-header>
+        <ion-grid>
+            <ion-row>
+                <ion-col size="6" *ngFor="let dia of diasSemana">
+                    <ion-item>
+                        <ion-label>{{dia.dia}}</ion-label>
+                        <ion-checkbox slot="end" type="ios" (ionChange)="selectDia()" [(ngModel)]="dia.index">
+                        </ion-checkbox>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </ion-card>
+
+    <ion-card name="camposCliente">
+        <ion-list-header color="medium">
+            <ion-label>Sucursales</ion-label>
+            <ion-button fill="clear" (click)="addNewSucursal()">
+                <ion-icon name="add" style="color:#ffffff; font-size: 25px"></ion-icon>
+            </ion-button>
+        </ion-list-header>
+        <ion-list *ngIf="dataSucursales.length==0" lines="none">
+            <ion-item>
+                <ion-label position="stacked">Sin registros.
+                </ion-label>
+            </ion-item>
+            <ion-item *ngIf="dataSucursales.length==0" lines="none">
+                <ion-label color="warning" class="ion-text-center">Tiene que registrar al menos una dirección
+                </ion-label>
+            </ion-item>
+        </ion-list>
+
+        <ion-list *ngIf="dataSucursales">
+            <ion-item-sliding *ngFor="let value of dataSucursales" class="animated fadeIn">
+                <ion-item>
+                    <ion-label>
+                        <p><b>ID de Dirección: </b> {{value.AddresName}}</p>
+                        <p><b>Dirección: </b> {{(value.Street == 'null')?'Sin Dirección':value.Street}}</p>
+                        <p *ngIf="value.AdresType == 'B'"><b>Tipo: </b> Dirección de cobro</p>
+                        <p *ngIf="value.AdresType == 'S'"><b>Tipo: </b> Dirección de Envío</p>
+                        <p><b>Territorio: </b> {{value.labelTerritorio}}</p>
+                    </ion-label>
+                    <ion-icon *ngIf="textAction=='Registrar'" class="animated wobble" name="arrow-back" color="medium"
+                        slot="end"></ion-icon>
+                </ion-item>
+                <ion-item-options *ngIf="textAction=='Registrar'" side="end">
+                    <ion-item-option color="danger" shape="round" fill="outline" expandable="true"
+                        (click)="deleteSucursal(value)">
+                        <ion-icon name="trash" style="font-size:25px"></ion-icon>
+                    </ion-item-option>
+                </ion-item-options>
+            </ion-item-sliding>
+        </ion-list>
+    </ion-card>
+
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button [disabled]="estadoBtnRegister" expand="block" shape="round" (click)="register()"
+                    color="primary">
+                    {{textAction}}
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>

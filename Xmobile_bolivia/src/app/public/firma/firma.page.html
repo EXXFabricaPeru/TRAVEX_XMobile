@@ -1,0 +1,40 @@
+<ion-header>
+
+
+    <ion-toolbar>
+      <ion-title>Firma de confirmación</ion-title>
+      <ion-buttons slot="end">
+  
+        <ion-button (click)="closeModal([])">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content [forceOverscroll]="false">
+
+  
+    <canvas #imageCanvas (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
+      (touchmove)="moved($event)" (mousemove)="moved($event)" (mouseup)="endDrawing()" (touchend)="endDrawing()"></canvas>
+  
+  
+
+    <ion-grid>
+        <ion-row>
+            <ion-col size="6">
+                <ion-button  expand="block" shape="round" (click)="delete()"
+                    color="primary">
+                    Limpiar
+                </ion-button>
+            </ion-col>
+            <ion-col size="6">
+                <ion-button  expand="block" shape="round" (click)="saveCanvasImage()"
+                    color="primary">
+                    Guardar Firma
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+
+  </ion-content>

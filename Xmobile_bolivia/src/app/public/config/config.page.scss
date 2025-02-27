@@ -1,0 +1,46 @@
+.centros--container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background-color: #919fe8;
+  margin-left: 12px;
+  margin-right: 12px;
+  border-radius: 8px;
+  margin-top: 20px;
+  position: relative;
+  color: white;
+  font-size: 14px;
+  height: 100px;
+  align-items: center;
+  box-shadow: 2px 2px 2px #999;
+  //   flex-wrap: wrap;
+}
+
+.centros-label {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.text-label {
+  padding-left: 8px;
+  margin: 0;
+  margin: 4px;
+}
+
+.btn--delete-centro {
+  height: 40px;
+  width: 40px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: 8px;
+  background-color: #ff3939;
+  border: red;
+  color: white;
+  font-size: 18px;
+}
+
+.uuid {
+  // background-color: gray;
+  margin-left: 12px;
+}

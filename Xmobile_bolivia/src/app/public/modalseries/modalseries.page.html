@@ -1,0 +1,29 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-searchbar placeholder="Buscar series." value="{{textsearch}}"
+                       showCancelButton="always" cancelButtonText="Cancelar"
+                       (ionChange)="buscarseries($event)" (ionCancel)="cerrar()">
+        </ion-searchbar>
+        <ion-button slot="end" fill="clear" (click)="actionCodeBarrasSeries()">
+            <ion-icon name="qr-scanner"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-list>
+        <ion-item *ngIf="series.length == 0">
+            <ion-label>
+                <p><b>No se encontraron resultados: </b></p>
+            </ion-label>
+        </ion-item>
+        <ion-item *ngFor="let serie of series">
+            <ion-checkbox slot="start" (ionChange)="selecionarCheket(serie.SerialNumber)"></ion-checkbox>
+            <ion-label>
+                <p><b>Producto: </b>{{serie.ItemCode}}</p>
+                <p><b>N° Serial: </b>{{serie.SerialNumber}}</p>
+                <p><b>N° System: </b>{{serie.SystemNumber}}</p>
+                <p><b>Code Almacen: </b>{{serie.WsCode}}</p>
+            </ion-label>
+        </ion-item>
+    </ion-list>
+</ion-content>

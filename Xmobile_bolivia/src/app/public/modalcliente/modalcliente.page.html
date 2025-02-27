@@ -1,0 +1,52 @@
+<ion-header>
+    <ion-searchbar #search placeholder="Buscar cliente." showCancelButton="always" maxlength="30"
+        cancelButtonText="Cancelar" (ionChange)="buscar($event)" (ionCancel)="cerrar()"></ion-searchbar>
+</ion-header>
+<ion-content>
+    <div style="margin: auto" *ngIf="loadItem">
+        <br />
+        <p class="ion-text-center">
+            <ion-spinner></ion-spinner>
+        </p>
+        <p class="ion-text-center">Buscando...</p>
+    </div>
+    <div *ngIf="this.items.length == 0 && searchText != ''">
+        <br/>
+        <br/>
+        <br/>
+        <ion-button (click)="buscarOnline()" color="primary" expand="block">
+            <ion-icon name="wifi" slot="end"></ion-icon>
+            Buscar en linea
+        </ion-button>
+    </div>
+    <ion-list *ngIf="!loadItem">
+        <ion-item *ngFor="let item of items" (click)="findItem(item)">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-grid>
+                <ion-row>
+                    <ion-col size="8">
+                        <ion-label>
+                            <p *ngIf="item.activo == 'N'"><b>Estado: Inactivo</b><ion-icon name="warning-outline" [style]="'color:#FF0000'"></ion-icon> </p>
+                            <p><b>COD:</b> {{item.CardCode}}</p>
+                            <p><b>CLIENTE:</b> {{item.CardName}}</p>
+                            <p><b>NIT:</b> {{item.FederalTaxId}}</p>
+                            <p><b>RZN:</b> {{item.razonsocial}}</p>
+                        </ion-label>
+                    </ion-col>
+                    <ion-col *ngIf="item.promo == 1" class="ion-align-self-end" size="4">
+                        <div class="item--promo">
+                            + Campaña
+                        </div>
+
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+            <!-- <ion-label>
+                <p><b>COD:</b> {{item.CardCode}} </p>
+                <p><b>CLIENTE:</b> {{item.CardName}}</p>
+                <p><b>NIT:</b> {{item.FederalTaxId}} </p>
+                <p><b>RZN:</b> {{item.razonsocial}} </p>
+            </ion-label> -->
+        </ion-item>
+    </ion-list>
+</ion-content>

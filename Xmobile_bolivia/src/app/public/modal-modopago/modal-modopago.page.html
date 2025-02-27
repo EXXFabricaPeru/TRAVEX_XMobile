@@ -1,0 +1,259 @@
+<ion-header>
+
+
+  <ion-toolbar>
+    <ion-title>Realizar Pago</ion-title>
+    <ion-buttons slot="end">
+
+      <ion-button (click)="closeModal([])">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [forceOverscroll]="false">
+
+  <ion-card *ngIf="tipo == 1">
+
+    <ion-card-header color="primary">
+        <ion-card-subtitle class="ion-text-center">DÓLARES</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+        <ion-item *ngIf="data.modo != 'CLIENTE'">
+            <ion-label>Total documento(s) en USD:</ion-label>
+            <p>{{montodocx}}</p>
+        </ion-item>
+        <ion-item (click)="selectcambio(false)">
+            <ion-label>Tipo cambio:</ion-label>
+            <p>{{tc | currency: monedaUser+'. '}}
+                <ion-icon name="arrow-dropdown"></ion-icon>
+            </p>
+        </ion-item>
+        <ion-item>
+            <ion-label>Monto :</ion-label>
+            <p>{{monto| currency: currency+'. '}}</p>
+        </ion-item>
+        <ion-item *ngIf="data.modo != 'CLIENTE'">
+            <ion-label>Cambio :</ion-label>
+            <p>{{cambio| currency: currency+'. '}}</p>
+        </ion-item>
+        <ion-item>
+            <ion-label>Monto en:</ion-label>
+            <p>{{(monto * tc)| currency: monedaUser+'. '}}</p>
+        </ion-item>
+        <ion-item>
+            <ion-label>Cambio en:</ion-label>
+            <p>{{(cambio * tc)| currency: monedaUser+'. '}}</p>
+        </ion-item>
+        <ion-item>
+            <div id="contenedorcampos_dolares" style="width: 100%;"></div>
+        </ion-item>
+    </ion-card-content>        
+</ion-card>
+<ion-card *ngIf="tipo == 2">
+    <ion-card-header color="primary">
+        <ion-card-subtitle class="ion-text-center">EFECTIVO</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+        <ion-item *ngIf="data.modo != 'CLIENTE'">
+            <ion-label>Total documento(s):</ion-label>
+            <p>{{montodocx| currency: currency+' ' }}</p>
+        </ion-item>
+
+        <ion-item *ngIf="data.modo != 'CLIENTE'">
+          <ion-label>Cambio Actual:</ion-label>
+          <p>{{tc | currency:' '}} USD</p>
+      </ion-item>
+
+        <ion-item *ngIf="data.modo == 'CLIENTE'">
+            <ion-label>Total a pagar:</ion-label>
+            <p>{{montoAuxGlobal| currency: currency+' ' }}</p>
+        </ion-item>
+
+        <ion-item>
+            <ion-label>Monto:</ion-label>
+            <!-- <p>{{monto | currency: currency+' '}}</p> -->
+            <ion-input type="text" class="ion-text-center" (ionChange)="eventUsd('BS',$event)"
+                value="{{monto | number : '1.2-2'}}" placeholder="">
+            </ion-input>
+
+
+        </ion-item>
+        <ion-item>
+            <ion-label>Adicionar pago en USD</ion-label>
+            <ion-toggle (ionChange)="eventToogle($event)" [(ngModel)]="toggleuSD"></ion-toggle>
+        </ion-item>
+
+        <ion-item *ngIf="toggleuSD">
+            <ion-label>USD</ion-label>
+            <ion-input type="number" class="ion-text-center" value="{{montoDolar | number : '1.2-2'}}"
+                id="montoDolar" (ionChange)="eventUsd('USD',$event)" placeholder=""></ion-input>
+        </ion-item>
+        <ion-item *ngIf="toggleuSD">
+            <ion-label>conversion en SOL: {{ montoDolarAbs | number : '1.2-2' }}</ion-label>
+        </ion-item>
+        <ion-item>
+            <!--*ngIf="toggleuSD && montodocx - (montoDolar*tc) > 0"-->
+            <ion-label>Falta completar SOL: {{faltaCompletar | number : '1.2-2'}}</ion-label>
+        </ion-item>
+        <ion-item>
+            <!--*ngIf="data.modo != 'CLIENTE'"-->
+            <ion-label>Cambio SOL:</ion-label>
+            <p>{{cambio | currency: currency+' '}}</p>
+        </ion-item>
+        <ion-item>
+        <div id="contenedorcampos_efectivo" style="width: 100%;"></div>
+        </ion-item>
+    </ion-card-content>
+    
+</ion-card>
+<ion-card *ngIf="tipo == 3">
+    <ion-card-header color="primary">
+        <ion-card-subtitle class="ion-text-center">TARJETA</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+        <ion-item>
+          <ion-label>Monto:</ion-label>
+          <!-- <p>{{monto | currency: currency+' '}}</p> -->
+          <ion-input type="text" class="ion-text-center" (ionChange)="eventUsd('SOL',$event)"
+              value="{{monto | number : '1.2-2'}}" placeholder="">
+          </ion-input>
+      </ion-item>
+        
+        <ion-item>
+            <ion-label position="stacked">Voucher</ion-label>
+            <ion-input type="number" class="ion-text-center" [(ngModel)]="boucher" placeholder="xxxxxxxxx">
+            </ion-input>
+        </ion-item>
+        <ion-item (click)="selectTipoTarjeta()">
+            <ion-label position="stacked">Tarjeta</ion-label>
+            <ion-input [(ngModel)]="CreditCardName" class="ion-text-center" placeholder="Seleccionar..."
+                readonly="true"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Número de Tarjeta</ion-label>
+            <ion-input type="number" class="ion-text-center" [(ngModel)]="numero_tarjeta" placeholder="xxxxxxxxx">
+            </ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Número de ID</ion-label>
+            <ion-input type="number" class="ion-text-center" [(ngModel)]="numero_id" placeholder="xxxxxxxxx">
+            </ion-input>
+        </ion-item>
+        <ion-item>
+            <div id="contenedorcampos_tarjeta" style="width: 100%;"></div>
+        </ion-item>        
+    </ion-card-content>       
+</ion-card>
+<ion-card *ngIf="tipo == 4">
+    <ion-card-header color="primary">
+        <ion-card-subtitle class="ion-text-center">CHEQUE</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label>Monto:</ion-label>
+        <!-- <p>{{monto | currency: currency+' '}}</p> -->
+        <ion-input type="text" class="ion-text-center" (ionChange)="eventUsd('BS',$event)"
+            value="{{monto | number : '1.2-2'}}" placeholder="">
+        </ion-input>
+        </ion-item>
+        <ion-item (click)="listBancos()">
+            <ion-label position="stacked">Banco</ion-label>
+            <ion-input readonly value="{{tranferenciaBancoName}}"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">N° Cheque</ion-label>
+            <ion-input type="number" class="ion-text-center" [(ngModel)]="chequeCheque" placeholder="xxxxxxxxxx">
+            </ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Fecha cheque</ion-label>
+            <ion-datetime [(ngModel)]="dateExpires" mode="ios" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
+                min="2020-01-01" max="{{limitFecha}}" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'">
+            </ion-datetime>
+        </ion-item>
+
+        <ion-item >
+            <ion-label position="stacked" >Originalmente emitido por</ion-label>
+            <ion-input [(ngModel)]="emitedForModel"  ></ion-input>
+            <ion-icon  name="search" slot="end" (click)="selectClient()" ></ion-icon>
+        </ion-item>
+
+        <ion-item>
+            <ion-label position="stacked">Tipo</ion-label>
+            <ion-radio-group  (ionChange)="onSelectTypeCheck($event)"
+                [(ngModel)]="typeChek">
+                <ion-row>
+                    <ion-col>
+                        <ion-item>
+                            <ion-label>Diferido &nbsp; </ion-label>
+                            <ion-radio mode="md" item-left value="Diferido"></ion-radio>
+                        </ion-item>
+                    </ion-col>
+
+                    <ion-col>
+                        <ion-item>
+                            <ion-label>Al día &nbsp; </ion-label>
+                            <ion-radio mode="md" item-left value="Al_dia"></ion-radio>
+                        </ion-item>
+                    </ion-col>
+
+                </ion-row>
+            </ion-radio-group>
+        </ion-item>
+
+        <ion-item *ngIf="typeChek && typeChek=='Diferido'">
+            <ion-label position="stacked">Fecha de emisión</ion-label>
+            <ion-datetime [(ngModel)]="dateEmision" mode="ios" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
+                min="2020-01-01" max="{{limitFecha}}" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'">
+            </ion-datetime>
+        </ion-item>
+
+        <ion-item>
+            <div id="contenedorcampos_chueque" style="width: 100%;"></div>
+        </ion-item>
+    </ion-card-content>
+    
+</ion-card>
+<ion-card *ngIf="tipo == 5">
+    <ion-card-header color="primary">
+        <ion-card-subtitle class="ion-text-center">TRANSFERENCIA</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label>Monto:</ion-label>
+        <!-- <p>{{monto | currency: currency+' '}}</p> -->
+        <ion-input type="text" class="ion-text-center" (ionChange)="eventUsd('BS',$event)"
+            value="{{monto | number : '1.2-2'}}" placeholder="">
+        </ion-input>
+    </ion-item>
+        <ion-item (click)="selectBanco()">
+            <ion-label position="stacked">Banco</ion-label>
+            <ion-input [(ngModel)]="tranferenciaBancoName" readonly="true"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">N° Transferencia</ion-label>
+            <ion-input type="number" [(ngModel)]="tranferenciaComprobante" class="ion-text-center"
+                placeholder="xxxxxxxxxxxxx"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Fecha de transferencia</ion-label>
+            <ion-datetime displayFormat="DD/MM/YYYY" mode="ios" pickerFormat="DD/MM/YYYY" min="2020-01-01"
+                max="2050-01-01" [(ngModel)]="dateExpires" [doneText]="'Seleccionar'" [cancelText]="'Cancelar'">
+            </ion-datetime>
+        </ion-item>
+        <ion-item>
+            <div id="contenedorcampos_transferencia" style="width: 100%;"></div>
+        </ion-item>
+    </ion-card-content>        
+</ion-card>
+    
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+      <div class="ion-text-center">
+          <ion-button  shape="round" color="primary" (click)="agregarpago()">Agregar Pago
+          </ion-button>
+      </div>
+  </ion-toolbar>

@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Agregar Ubicación</ion-title>
+    <ion-buttons slot="end">
+
+      <ion-button (click)="closeModal(0)">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div id="map_canvas" class="map"></div>
+</ion-content>
+
+
+<ion-footer>
+    <ion-button expand="full" color="primary" (click)="seleccionubic()">
+      <small>{{datos && datos.modo && datos.modo=='used'?'Actualizar':'Guardar' }}</small>
+
+      
+    </ion-button>
+</ion-footer>

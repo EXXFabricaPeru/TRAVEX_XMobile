@@ -1,0 +1,77 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>{{data.ItemName}}</small>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-card>
+        <ion-card-header>
+            <!--<ion-img [src]="srcimg" style="height:250px"></ion-img>-->
+            <ion-card-title class="ion-text-center">{{data.ItemCode}}</ion-card-title>
+            <ion-card-subtitle><b>{{data.ItemName}}</b></ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+            <p *ngIf="data.ForeignName != 'null'"><b>Descripción: </b> {{data.ForeignName}} </p>
+            <p><b>Grupo:</b> [{{data.ItemsGroupCode}}] - ({{data.GroupName}})</p>
+            <p><b>Stock :</b> {{data.QuantityOnStock | number : '1.0-0'}}</p>
+            <p><b> Comprometido:</b> {{data.QuantityOrderedFromVendors | number : '1.0-0' }}</p>
+            <!--p><b>Stock Solicitado:</b> {{data.QuantityOrderedByCustomers | currency : " " : " "}}</p-->
+            <p><b>Stock por almacén:</b> </p>
+            <p *ngFor="let item of almacenes">
+                {{item.WarehouseCode}} : {{ item.InStock | number : '1.0-0'}}
+            </p>
+            <p><b>Código Barras:</b> {{data.BarCode}} </p>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-list-header color="medium">
+            <ion-label>INFORMACIÓN ADICIONAL</ion-label>
+        </ion-list-header>
+        <ion-card-content>
+            <p><b>Unidad:</b> {{data.SalesUnit}}</p>
+            <p><b>Altura:</b> {{data.SalesUnitHeight}}</p>
+            <p><b>Ancho:</b> {{data.SalesUnitWidth}}</p>
+            <p><b>Longitud:</b> {{data.SalesUnitLength}}</p>
+            <p><b>Volumen:</b> {{data.SalesUnitVolume | currency : " " : " "}}</p>
+            <p *ngIf="data.SerialNum != 'null'"><b>Serial Num:</b> {{data.SerialNum}}</p>
+            <p *ngIf="data.ICEt != 'N'"><b>ICE:</b> {{data.producto_std2}}</p>
+            <p *ngIf="data.ICEp != 'null'"><b>ICE Porcentual:</b> {{data.producto_std3 | number : '1.2-2'}}</p>
+            <p *ngIf="data.ICEm != 'null'"><b>ICE especifico:</b> {{data.producto_std4 | number : '1.2-2'}}</p>
+        </ion-card-content>
+    </ion-card>
+    <ion-card>
+        <ion-list>
+            <ion-list-header color="medium">
+                <ion-label>LISTA DE PRECIOS</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let item of items">
+                <ion-label>
+                    <p><b>Unidad de venta:</b> {{item.Name}}</p>
+                    <p><b>Precio:</b> {{item.Price}} {{item.Currency}}</p>
+                    <p><b>Nombre de lista de precios:</b> {{item.PriceListName}}</p>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+    </ion-card>
+    <ion-card *ngIf="lotes.length > 0">
+        <ion-list>
+            <ion-list-header color="medium">
+                <ion-label>LOTES:</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let item of lotes">
+                <ion-label>
+                    <p><b>Cantidad: </b> {{item.Quantity | number : '1.0-0'}}</p>
+                    <p><b>Lote: </b> {{item.BatchNum}}</p>
+                    <p><b>Almacén: </b> {{item.WhsCode}}</p>
+                    <p><b>Fecha ingreso: </b> {{item.InDate}}</p>
+                    <p><b>Fecha vencimiento: </b> {{item.ExpDate}}</p>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+    </ion-card>
+</ion-content>

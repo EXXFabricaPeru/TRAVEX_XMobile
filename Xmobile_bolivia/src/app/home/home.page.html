@@ -1,0 +1,50 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small><b style="color:#ffce00">{{databasex}}</b> xMobile II</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <img src="../../assets/sap.svg" width="40px">
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <div class="homediv">
+        <div class="cajaHOme">
+            <ion-grid>
+                <ion-row>
+                    <ion-col size="1">
+                    </ion-col>
+                    <ion-col size="10">
+                    </ion-col>
+                    <ion-col size="1"></ion-col>
+                </ion-row>
+            </ion-grid>
+            <ion-grid>
+                <ion-row>
+                    <ion-col size="6" *ngFor="let menu of appPages">
+                        <ion-button fill="clear" expand="block" class="buttonDash animated fadeIn" [routerDirection]="'root'"
+                                    [routerLink]="menu.url">
+                            <div>
+                                <ion-icon name='{{menu.icon}}' color="primary"
+                                          style="font-size: 50px !important;"></ion-icon>
+                                <br/>
+                                <label style="color: #112848">{{menu.title}}</label>
+                            </div>
+                        </ion-button>
+                    </ion-col>
+                </ion-row>
+            </ion-grid>
+            <br/><br/><br/>
+        </div>
+    </div>
+    <ion-fab vertical="top" horizontal="end" slot="fixed">
+        <ion-fab-button color="medium" (click)="pageSincronizar()">
+            <ion-icon name="sync" class="animated heartBeat infinite"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>
+

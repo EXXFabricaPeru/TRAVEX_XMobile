@@ -1,0 +1,142 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small>PAGOS RECIBIDOS</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <app-net></app-net>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-toolbar>
+        <ion-searchbar maxlength="30" placeholder="Buscar..." (ionChange)="buscar($event)">
+        </ion-searchbar>
+        <ion-button slot="end" fill="clear" (click)="searchCalendar()">
+            <ion-icon name="calendar"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <p class="ion-text-center" *ngIf="items.length == 0">
+        <small>No se encontraron resultados</small>
+    </p>
+    <div id="datetimeHidden">
+        <ion-datetime #datePicker displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY" min="2020-01-01"
+            [pickerOptions]="{mode:'ios'}" [(ngModel)]="searchData" value="{{searchData}}" [doneText]="'SELECCIONAR'"
+            [cancelText]="'CANCELAR'" (ionChange)="accionFecha($event)"></ion-datetime>
+    </div>
+    <ion-list>
+        <ion-item class="animated fadeIn" *ngFor="let item of items">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label class="ion-text-wrap" (click)="detallePagos(item)">
+                <!-- <p *ngIf="item.tipo == 'factura' || item.tipo == 'pedido' || item.tipo == 'oferta'">
+                    <ion-icon *ngIf="item.estado == 0 " name="cash-outline" color="medium">
+                    </ion-icon>
+                    <ion-icon *ngIf="item.estado != 0 && item.anulado == 0" name="cash-outline" color="success">
+                    </ion-icon>
+                    <ion-icon *ngIf="item.anulado>0" name="cash-outline" color="warning">
+                    </ion-icon>
+                    <b style="color: #e53935 !important; text-transform: uppercase"
+                        *ngIf="item.dx == 'FACTURAS' || item.dx == 'facturas'">
+                        PAGO: A {{item.num}}
+                        FACTURA(S) </b>
+                    <b style="color: #827717 !important; text-transform: uppercase"
+                        *ngIf="item.dx == 'factura' || item.dx == 'FACTURA'">
+                        PAGO: A {{item.num}}
+                        {{item.tipo}} </b>
+                    <span style=" text-transform: uppercase;">[{{item.formaPago}}]</span>
+                </p>
+                <p
+                    *ngIf="item.tipo != 'factura' && item.tipo != 'facturas' && item.tipo != 'FACTURAS' && item.tipo != 'FACTURA'">
+
+                    <ion-icon *ngIf="item.estado == 0 " name="cash-outline" color="medium">
+                    </ion-icon>
+                    <ion-icon *ngIf="item.estado != 0 && item.anulado == 0" name="cash-outline" color="success">
+                    </ion-icon>
+                    <ion-icon *ngIf="item.anulado>0" name="cash-outline" color="warning">
+                    </ion-icon>
+
+                    <b style="color: #6a1b9a !important;"> PAGO:
+                        A CUENTA</b><span style=" text-transform: uppercase;">
+                        [{{item.formaPago}}]</span>
+                </p> -->
+                <p class="item-header">
+                    <ion-icon name="wallet-outline" class="item-icon"></ion-icon>
+                    
+                    <span *ngIf="item.tipo == 'deuda'"> Pago de Deuda</span>
+                    <span *ngIf="item.tipo == 'cuenta'"> Anticipo Clientes </span>
+                    <span *ngIf="item.tipo == 'factura'"> Pago al Contado {{item.documentoId}}</span>
+                </p>
+                <p class="item-header"><b>
+                    <span *ngIf="item.estado == 0">Transaccion Por Confirmar debe Re enviar el Pago</span>
+                    <span *ngIf="item.estado == 1">Transaccion Fallida debe Registrar Nuevamente el Pago</span>
+                    <span *ngIf="item.estado == 2">Transaccion Fallida debe Registrar Nuevamente el Pago</span>
+                    <span *ngIf="item.cancelado == 3">Transaccion Cancelada</span>
+                    </b>
+                </p>
+                <p>
+                    <ion-icon name="person-outline" class="item-icon"></ion-icon> <b> CLIENTE: </b> {{item.cliente_carcode
+                    }}
+                </p>
+                <p>
+                    <ion-icon name="person-outline" class="item-icon"></ion-icon> <b> RAZON SOCIAL: </b> {{item.razon_social}}
+                </p>
+                <p>
+                    <ion-icon name="document-outline" class="item-icon"></ion-icon>
+                    <b>RECIBO: </b> {{item.nro_recibo}}
+                </p>
+                <p>
+                    <ion-icon name="cash-outline" class="item-icon"></ion-icon>
+                    <b>MONTO: </b> {{item.monto_total}} <span *ngIf="item.mediosPago.length > 0"> ({{
+                        item.mediosPago[0].formaPago }})</span>
+                </p>
+                <p>
+                    <ion-icon name="bookmark-outline" class="item-icon"></ion-icon>
+                    <b>ESTADO: </b>
+                    <span *ngIf="item.estado == 0">Transaccion Por Confirmar </span>
+                    <span *ngIf="item.estado == 1">Transaccion Fallida </span>
+                    <span *ngIf="item.estado == 2">Transaccion Fallida </span>
+                    <span *ngIf="item.estado == 3">Transaccion Exitosa</span>                    
+                </p>
+                <p>
+                    <ion-icon name="calendar-outline" class="item-icon"></ion-icon>
+                    <b>FECHA: </b> {{ item.fecha | date : 'dd-MM-yyyy' }}
+                </p>
+
+            </ion-label>
+            <div class="container__status">
+                <ion-icon (click)="showInfo(item.status, item )" *ngIf="item.status == 'SAP'" name="cloud-done-outline"
+                    [style]="'color:'+ item.statusColor">
+                </ion-icon>
+
+                <ion-icon (click)="showInfo(item.status, item )" *ngIf="item.status == 'MID'" name="cloudy-outline"
+                    [style]="'color:'+ item.statusColor">
+
+                </ion-icon>
+                <ion-icon (click)="showInfo(item.status, item )" *ngIf="item.status == 'MOV'"
+                    name="cloud-offline-outline" [style]="'color:'+ item.statusColor"></ion-icon>
+
+                <ion-icon (click)="showInfo(item.status, item )" *ngIf="item.status == 'ANULADO'"
+                    name="cloud-offline-outline" [style]="'color:'+ item.statusColor"></ion-icon>
+            </div>
+
+            <div class="container__status-send" (click)="resendPay(item)">
+                <p *ngIf="item.status == 'MOV'" class="item-button-send">
+                    <b class="item--button-text">Enviar</b>
+                    <ion-icon name="send"></ion-icon>
+                </p>
+            </div>
+
+        </ion-item>
+    </ion-list>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="animated bounceIn">
+        <ion-fab-button color="medium" (click)="seleccionarCliente()">
+            <ion-icon name="add" class="animated rotateIn"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+</ion-content>

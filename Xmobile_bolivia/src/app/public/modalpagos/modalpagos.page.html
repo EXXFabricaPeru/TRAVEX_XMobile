@@ -1,0 +1,83 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            <small>COD: {{item.nro_recibo}}</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="reporte()">
+                <ion-icon slot="icon-only" name="document"></ion-icon>
+            </ion-button>
+            <ion-button (click)="cancelPay()">
+                <ion-icon slot="icon-only" name="warning"></ion-icon>
+            </ion-button>
+            <ion-button (click)="cerrar()">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title *ngIf="item.estado < 3 ">
+                <span *ngIf="item.estado == 0">Transaccion Por Confirmar</span>
+                <span *ngIf="item.estado == 1">Transaccion Fallida</span>
+                <span *ngIf="item.estado == 2">Transaccion Fallida</span>
+                <span *ngIf="item.cancelado == 3">Transaccion Cancelada</span>
+            </ion-card-title>
+            <ion-card-title>Cliente: {{item.cliente_carcode}}</ion-card-title>
+            <ion-card-subtitle>Razon Social: {{item.razon_social}}</ion-card-subtitle>
+            <ion-card-subtitle>Fecha de Pago: {{item.fecha}}</ion-card-subtitle>
+            <ion-card-subtitle>Tipo transaccion:
+                <span *ngIf="item.tipo == 'deuda'"> Pago de Deuda</span>
+                <span *ngIf="item.tipo == 'cuenta'"> Anticipo Clientes </span>
+                <span *ngIf="item.tipo == 'factura'"> Pago al Contado: {{item.documentoId}} </span>
+            </ion-card-subtitle>
+            <ion-card-subtitle>Monto Total {{item.monto_total| currency: item.moneda + ' '}}</ion-card-subtitle>
+
+        </ion-card-header>
+
+        <ion-card-content>
+            <ion-grid>
+                <ion-row>
+                    <ion-col> Medios de Pago</ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col> Forma de Pago</ion-col>
+                    <ion-col> Monto </ion-col>
+                </ion-row>
+                <ion-row *ngFor="let medio of item.xmf_medios_pagos">
+                    <ion-col> {{medio.formaPago}}</ion-col>
+                    <ion-col> {{medio.monto}} {{item.moneda}} </ion-col>
+                </ion-row>
+            </ion-grid>
+
+            <ion-grid *ngIf="item.otpp ==2">
+                <ion-row>
+                    <ion-col> Facturas Pagadas</ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col> Factura</ion-col>
+                    <ion-col> Cuota </ion-col>
+                    <ion-col> Monto </ion-col>
+                </ion-row>
+                <ion-row *ngFor="let facturas of item.xmf_facturas_pagos">
+                    <ion-col> {{facturas.nroFactura}}</ion-col>
+                    <ion-col> {{facturas.cuota}}</ion-col>
+                    <ion-col> {{facturas.monto}} {{item.moneda}} </ion-col>
+                </ion-row>
+            </ion-grid>
+        </ion-card-content>
+    </ion-card>
+    <!-- <ion-list>
+        <ion-item class="animated fadeIn" *ngFor="let pago of pagos">
+            <ion-label class="ion-text-wrap" *ngIf=" item.dx != 'cuenta' ">
+                <p *ngIf="pago.centro != ''"><b>Centro de costos:</b> {{pago.centro}}</p>
+                <p *ngIf="pago.documentoId != '0'"><b>Documento:</b> {{pago.documentoId}} </p>
+                <p><b>Total:</b> {{pago.DocumentTotalPay | currency: item.currency + ' '}}</p>
+                <p><b>Saldo:</b> {{pago.saldox | currency: item.currency + ' '}}</p>
+                <p><b>Pagado:</b> {{pago.monto | currency: item.currency + ' '}}</p>
+            </ion-label>
+        </ion-item>
+    </ion-list> -->
+</ion-content>

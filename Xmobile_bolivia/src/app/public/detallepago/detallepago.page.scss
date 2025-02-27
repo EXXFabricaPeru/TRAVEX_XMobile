@@ -1,0 +1,14 @@
+.spacio {
+  line-height: -2 !important;
+  font-size: 12px !important;
+}
+
+.container-items {
+  display: flex;
+  justify-content: flex-start;
+
+  p {
+    margin-right: 12px;
+  }
+
+}

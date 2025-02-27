@@ -1,0 +1,130 @@
+<ion-header no-margin no-padding>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small> {{tituloTipo}}</small>
+        </ion-title>
+        <ion-buttons *ngIf="!fromMarker" slot="end">
+            <app-net></app-net>
+            <ion-button (click)="filtroInnerOuter()">
+                <ion-icon slot="icon-only" *ngIf="origen == 'inner'" name="download"></ion-icon>
+                <ion-icon slot="icon-only" *ngIf="origen == 'outer'" name="documents"></ion-icon>
+            </ion-button>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon class="animated rotateIn" slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+        <ion-buttons *ngIf="fromMarker" slot="end">
+            <ion-button (click)="cerrar()">
+                <ion-icon color="medium" name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+    </ion-toolbar>
+
+    <ion-toolbar *ngIf="!fromMarker">
+        <ion-searchbar maxlength="30" placeholder="Buscar..." [(ngModel)]="searchData" (ionChange)="buscar($event)">
+        </ion-searchbar>
+        <ion-button slot="end" fill="clear" (click)="searchCalendar()">
+            <ion-icon name="calendar"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-refresher *ngIf="!fromMarker" slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <div id="datetimeHidden">
+        <ion-datetime #datePicker [pickerOptions]="{mode:'ios'}" displayFormat="DD/MM/YYYY" pickerFormat="DD/MM/YYYY"
+            min="2020-01-01" max="{{minPiker}}" [doneText]="'SELECCIONAR'" [cancelText]="'CANCELAR'"
+            (ionChange)="accionFecha($event)"></ion-datetime>
+    </div>
+
+    <ion-fab *ngIf="origen != 'outer' && tipo != 'DOE'" vertical="bottom" horizontal="end" slot="fixed"
+        class="animated bounceIn">
+        <ion-fab-button color="medium" (click)="crearexe(null)">
+            <ion-icon name="add" class="animated heartBeat infinite"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+    <div class="ion-text-center" *ngIf="cantidadDoc == true">
+        <br />
+        <br />
+        <small>SIN RESULTADOS {{tituloTipo}}</small>
+    </div>
+
+    <ion-list *ngIf="load == false">
+        <div *ngFor="let item of ventas; let i = index">
+            <ion-item style="width: 100%;" (click)="detalleItem(item)" class="animated fadeIn">
+                <div class="container__ventas">
+                    <div class="container__ventas__info">
+                        <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+                        <ion-label class="ion-text-wrap">
+                            <p>
+                                <ion-icon name="document-outline"></ion-icon>
+                                <!-- <ion-icon style="color:#ffce00" *ngIf="item.tipoestado == 'new'" slot="icon-only"
+                                    name="save" class="animated infinite heartBeat"></ion-icon>
+                                <ion-icon *ngIf="item.estadosend == '1'" name="cloud-upload" color="medium"></ion-icon>
+                                <ion-icon *ngIf="item.estadosend == '3'" name="cloud-done" color="success"></ion-icon>
+                                <ion-icon *ngIf="item.estadosend == '7' || item.estadosend == '6'" name="warning"
+                                    style="color:#e63e2b"></ion-icon> -->
+                                <b *ngIf="item.Reserve == true && tipo == 'DFA'">
+                                    <span style="color: #e63e2b"> &reg;</span>
+                                    {{item.cod}} (Reserva)</b>
+                                <b *ngIf="item.Reserve == false && tipo == 'DFA'"> {{item.cod}} (Deudor) </b>
+                                <b *ngIf="tipo != 'DFA'"> {{item.cod}} </b>
+                            </p>
+                            <p><b>{{item.CardName}} : {{item.CardCode}}</b></p>
+                            <p><b>DESCUENTO: </b>{{item.DocumentdescuentoTotal | currency: item.currency+' '}}</p>
+                            <p *ngIf="tipo == 'DFA' || tipo == 'DOE'">
+                                <ion-icon name="checkmark-done-outline" *ngIf="item.DocumentTotalPay == item.pago"
+                                    color="success"></ion-icon>
+                                <b> PAGADO: </b>{{item.pago | currency: item.currency+' '}}
+                            </p>
+                            <p *ngIf="tipo == 'DFA' || tipo == 'DOE'"><b>SALDO: </b> {{item.saldox | currency:
+                                item.currency+'
+                                '}}</p>
+                            <p style="color:#0288d1"><b>TOTAL: </b>{{item.DocumentTotalPay | currency: item.currency+' '
+                                }}
+                            </p>
+                            <small *ngIf="origen == 'outer'"><b> CREADO: </b>{{item.DocDate |
+                                date:'dd/MM/yyyy'}}</small>
+                            <small *ngIf="origen == 'inner'"><b> CREADO: </b>{{item.fecharegistro |
+                                date:'dd/MM/yyyy'}}</small>
+                            <small><b> VENCE: </b> {{item.DocDueDate | date:'dd/MM/yyyy'}}</small>
+                        </ion-label>
+                    </div>
+
+                    <!-- <div [className]="item.status == 'SAP' ? 'css-sap status-label': 'status-label'">
+                        <p> {{item.status}}</p>
+                    </div> -->
+                </div>
+
+                <div *ngIf="item.facturacode != 0" (click)="verFactura(item.facturacode)"
+                    class="container__ventas__extra">
+                    <!-- <span>Factura: {{item.facturacode}}</span> -->
+                    <span>{{item.facturacode}}</span>
+                </div>
+                
+                <div class="container__status">
+                    <ion-icon *ngIf="item.status == 'SAP'" name="cloud-done-outline"
+                        [style]="'color:'+ item.statusColor">
+                    </ion-icon>
+
+                    <ion-icon *ngIf="item.status == 'MID'" name="cloudy-outline" [style]="'color:'+ item.statusColor">
+                    </ion-icon>
+                    <ion-icon *ngIf="item.status == 'MOV'" name="cloud-offline-outline"
+                        [style]="'color:'+ item.statusColor"></ion-icon>
+
+                    <ion-icon *ngIf="item.status == 'ANULADO'" name="cloud-offline-outline"
+                        [style]="'color:'+ item.statusColor"></ion-icon>
+                </div>
+            </ion-item>
+        </div>
+    </ion-list>
+</ion-content>

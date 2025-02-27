@@ -1,0 +1,45 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>{{clienteName}}</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-list>
+        <ion-item-sliding *ngFor="let item of ventas">
+            <ion-item *ngIf="item.estx == 1 || item.est == null" (click)="pagos(item)">
+                <!--ion-checkbox (ionChange)="eventoChange($event)" slot="start" color="secondary"
+                              value="{{item}}"></ion-checkbox-->
+                <ion-label>
+                    <p><b>COD: {{item.cod}}</b></p>
+                    <i>{{item.fecharegistro}}</i>
+                </ion-label>
+                <b slot="end">
+                    <p>Pagado: {{item.pagado}}</p>
+                    <p>Deuda: {{item.deudax}}</p>
+                </b>
+            </ion-item>
+        </ion-item-sliding>
+    </ion-list>
+</ion-content>
+<ion-toolbar color="medium">
+    <ion-grid>
+        <ion-row size="2">
+            <ion-col size="4">
+                <!--ion-button size="full" (click)="alterPagar()">
+                    Pagar
+                </ion-button-->
+            </ion-col>
+            <ion-col size="4">
+                <div class="ion-text-center"></div>
+            </ion-col>
+            <ion-col size="4">
+                <ion-button size="full" fill="clear">
+                    {{totalx.totalx}}
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-toolbar>

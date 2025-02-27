@@ -1,0 +1,59 @@
+#loginback {
+  background: #f5f6f6;
+  background: -moz-linear-gradient(-45deg, #f5f6f6 0%, #dbdce2 21%, #b8bac6 49%, #dddfe3 80%, #f5f6f6 100%);
+  background: -webkit-linear-gradient(-45deg, #f5f6f6 0%, #dbdce2 21%, #b8bac6 49%, #dddfe3 80%, #f5f6f6 100%);
+  background: linear-gradient(135deg, #f5f6f6 0%, #dbdce2 21%, #b8bac6 49%, #dddfe3 80%, #f5f6f6 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f5f6f6', endColorstr='#f5f6f6', GradientType=1);
+
+  height: 100%;
+  width: 100%;
+}
+
+.logologin {
+  width: 200px;
+  margin: 0 auto;
+}
+
+ion-item {
+  --ion-background-color: transparent !important;
+  --border-color: #0d47a1;
+
+  ion-label {
+    color: #0d47a1;
+  }
+
+  ion-input {
+    color: #0d47a1;
+  }
+}
+
+ion-card-title {
+  color: #0d47a1;
+}
+
+ion-card-subtitle {
+  color: #0d47a1;
+}
+
+ion-card {
+  padding-top: 10% !important;
+}
+
+.invalid {
+  border-bottom: 1px solid rgba(255, 0, 0, 0.71);
+}
+
+.item-md.item-block .item-inner {
+  padding-right: 0px !important;
+  border-bottom: #0d47a1 !important;
+}
+
+.login--input {
+  background-color: #b2b2b2;
+  height: 40px;
+  border-radius: 12px;
+  color: #1f224f;
+  padding: 12px;
+  outline: none;
+  border: none;
+}

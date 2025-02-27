@@ -1,0 +1,59 @@
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+ion-content {
+  --ion-background-color: transparent !important;
+}
+
+ion-slides {
+  height: 50px;
+}
+
+.transparente {
+  background: #fff;
+  width: 90%;
+  left: 5%;
+  right: 5%;
+  top: 7%;
+}
+
+.sc-ion-modal-md-h {
+  --background: none;
+}
+
+.sc-ion-modal-ios-h {
+  --background: none;
+}
+
+.iconClose {
+  font-size: 35px !important;
+  color: #ffffff !important;
+}
+
+.textoBlanco {
+  color: #ffffff !important;
+  margin-top: 12px !important;
+}
+
+.headerFondo {
+  background-color: #989aa2;
+}
+
+//USER
+.container--stock {
+  background-color: #ececec;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.text-stock {
+  background-color: #7cc0fb;
+  height: 30px;
+  padding: 6px;
+  color: white;
+  border-radius: 8px;
+}

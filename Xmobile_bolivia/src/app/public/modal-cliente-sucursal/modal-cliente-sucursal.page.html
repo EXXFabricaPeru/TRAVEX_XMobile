@@ -1,0 +1,111 @@
+<ion-header>
+
+
+  <ion-toolbar>
+    <ion-title>Agregar sucursal</ion-title>
+    <ion-buttons slot="end">
+
+      <ion-button (click)="closeModal([])">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!--
+  <div  id="map_canvas" style="position: relative;
+  z-index: 9999999" ></div>
+  
+  AddresName= "";
+  Street= "";
+  AdresType= "";
+  u_territorio= "";
+  -->
+
+
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">
+        Nombre de la dirección(*)</ion-label>
+      <ion-input maxlength="30" [(ngModel)]="this.AddresName2" (ionChange)="onChangeAddresName2($event)" type="text">
+      </ion-input>
+    </ion-item>
+
+    <!-- Error messages -->
+
+    <ion-item>
+      <ion-label position="stacked">Dirección(*)</ion-label>
+      <ion-input maxlength="50" [(ngModel)]="Street2" (ionChange)="onChangeStreet2($event)" type="text"
+        value="{{Street2}}">
+      </ion-input>
+    </ion-item>
+    <!-- Error messages -->
+
+
+    <ion-item>
+      <ion-label color="primary" position="stacked">
+        Factura o envío(*)</ion-label>
+      <ion-select [(ngModel)]="AdresType2" (ionChange)="onChangeAdresType2($event)" cancelText="CANCELAR"
+        okText="SELECCIONAR">
+        <ion-select-option value="B">Dirección de cobro</ion-select-option>
+        <ion-select-option value="S">Dirección de Envío</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+
+
+    <!-- Error messages -->
+
+
+    <!--ion-item>
+      <ion-label color="primary" position="stacked">{{territoriosJson }}</ion-label>
+      <ion-select [(ngModel)]="u_territorio2" (ionChange)="onChangeAdresu_territorio2($event)" cancelText="CANCELAR"
+        okText="SELECCIONAR">
+
+        <ion-select-option *ngFor="let item of territoriosJson">{{item.Description}}
+        </ion-select-option>
+
+      </ion-select>
+    </ion-item-->
+
+    <ion-item (click)="listarTerritorios()">
+      <!--[disabled]="estado"-->
+      <ion-label color="primary" position="stacked">
+        Territorio(*)</ion-label>
+      <ion-label>
+        <h3>{{u_territorio2}}
+          <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+        </h3>
+      </ion-label>
+    </ion-item>
+
+    <div id="contenedorcamposs">
+
+    </div>
+
+    <!-- Error messages -->
+
+    <!--
+          AddresName: ['', Validators.required],
+        Street: ['', Validators.required],
+        AdresType: ['', Validators.required],
+        u_territorio: ['', Validators.required]
+      -->
+
+  </ion-list>
+
+
+
+  <ion-row>
+    <ion-col>
+      <ion-button (click)="submitForm()" color="primary" expand="block">Agregar</ion-button>
+      <!-- [disabled]="!sucursalForm.valid"-->
+    </ion-col>
+  </ion-row>
+
+
+
+
+
+</ion-content>

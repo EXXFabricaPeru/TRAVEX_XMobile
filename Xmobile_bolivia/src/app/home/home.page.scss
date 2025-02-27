@@ -1,0 +1,30 @@
+.welcome-card img {
+  max-height: 35vh;
+  overflow: hidden;
+}
+
+.buttonDash {
+  height: 90px !important;
+  width: 100% !important;
+  line-height: 120px;
+  text-align: center;
+  color: #ffffff;
+  border-radius: 10px;
+  background-color: rgba(102, 167, 255, 0.5) !important;
+}
+
+.menuhome {
+  margin: 3px !important;
+  height: 20px !important;
+  width: 20px !important;
+}
+
+.homediv {
+  height: 100%;
+  width: 100%;
+  .cajaHOme {
+    overflow: auto !important;
+    height: 100%;
+    width: 100%;
+  }
+}

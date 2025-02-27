@@ -1,0 +1,95 @@
+
+<ion-header>
+    <ion-toolbar color="primary">
+
+        <ion-buttons slot="start">
+            <ion-button (click)="closeModal([])">
+                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+        <ion-title>
+            <small>{{codDocumento}} </small>
+        </ion-title>
+
+        <ion-buttons slot="end">
+            <ion-button  [disabled]="guarda"  (click)="guardardatos()">
+                <ion-icon style="color:#ffce00" slot="icon-only" name="save" class="animated infinite heartBeat">
+                </ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+    <ion-card-content style="padding: 0px;">
+        <canvas #firmaCanvas></canvas>
+    </ion-card-content>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="6">
+                <ion-button  expand="block" shape="round" (click)="eliminarfima()"color="danger">
+                    Eliminar Firma
+                </ion-button>
+            </ion-col>
+            <ion-col size="6">
+                <ion-button  expand="block" shape="round" (click)="Agregarfima()"color="primary">
+                    Capturar Firma
+                </ion-button>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+
+
+    <ion-card>
+
+        <ion-grid>
+            <ion-row>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto0"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto0" (click)="elimanaevidencia(0)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto1"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto1" (click)="elimanaevidencia(1)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto2"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto2" (click)="elimanaevidencia(2)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto3"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto3" (click)="elimanaevidencia(3)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto4"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto4" (click)="elimanaevidencia(4)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-img  style="height:120px" id="foto5"></ion-img>
+                    <ion-button size="small" color="danger" id="Desfoto5" (click)="elimanaevidencia(5)">
+                        Eliminar
+                    </ion-button>
+                </ion-col>
+                
+            </ion-row>
+        </ion-grid>
+    </ion-card>
+    
+
+    <ion-button  expand="block" shape="round" (click)="selectImage()"color="primary">
+        Capturar imagen
+    </ion-button>
+</ion-content>
+

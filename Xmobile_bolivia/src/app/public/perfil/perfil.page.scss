@@ -1,0 +1,13 @@
+.fondoPefil {
+  background: #666666;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .perfilFoto {
+    background-color: #ffffff;
+    height: 150px;
+    width: 150px;
+    margin-top: 60px;
+  }
+}

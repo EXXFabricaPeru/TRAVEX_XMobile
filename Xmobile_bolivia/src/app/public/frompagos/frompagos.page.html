@@ -1,0 +1,76 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>
+            <small>Pagos {{cod}}</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <ion-button fill="clear">
+                {{tc | currency:' '}} USD
+            </ion-button>
+            <ion-button  fill="clear" (click)="cerrar(0)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-fab vertical="bottom" horizontal="end" edge slot="fixed">
+        <ion-fab-button [disabled]="estadoagregar" (click)="tipomonedaexe()">
+            <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+    <br />
+    <ion-title class="text-center" >
+        Monto Total : {{data.monto | currency: currency+'. '}} 
+    </ion-title>
+
+    <div id="contenedorcampos">
+
+    </div>
+
+    <br />
+    <ion-title *ngIf="pagosArray.length>0">RESUMEN DEL PAGO</ion-title>
+    <ion-list>
+        <ion-item *ngFor="let item of pagosArray; let i = index">
+            <ion-button (click)="ItemAmountDetail(item)" size="small" shape="round" fill="outline">
+                <ion-icon name="eye"></ion-icon>
+            </ion-button>
+
+            <ion-button (click)="deleteItemAmount(item)" size="small" shape="round" fill="outline">
+                <ion-icon name="trash"></ion-icon>
+            </ion-button>
+
+            <ion-label><small>{{item.type}}</small></ion-label>
+            <ion-label slot="end">{{item.amount | currency: currency + ' '}}</ion-label>
+
+        </ion-item>
+    </ion-list>
+    <br />
+    <br />
+    
+    <br />
+    
+</ion-content>
+<ion-footer>
+    <ion-toolbar>
+        <ion-item color="light">
+            <ion-label>Total</ion-label>
+            <ion-label slot="end"> {{totalAmount | currency: currency + ' '}} </ion-label>
+            <!---->
+        </ion-item>
+        <ion-item color="light">
+            <ion-label>Saldo</ion-label>
+            <ion-label slot="end">  {{totalSaldo | currency: currency + ' '}}
+            </ion-label>
+            <!---->
+        </ion-item>
+
+        <div class="ion-text-center">
+            <ion-button [disabled]="estadoEnviar" shape="round" color="primary" (click)="pagar()">Pagar documento
+            </ion-button>
+        </div>
+
+    </ion-toolbar>
+
+</ion-footer>

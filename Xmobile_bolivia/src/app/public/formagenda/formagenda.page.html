@@ -1,0 +1,70 @@
+<ion-header translucent>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            <small>AGENDA</small>
+        </ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-card>
+        <ion-list-header color="primary">
+            <ion-label>Registro de actividades</ion-label>
+        </ion-list-header>
+        <ion-item>
+            <ion-label position="stacked">Nombre cliente</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="nombreCliente"></ion-input>
+        </ion-item>
+        <ion-item (click)="selectTipoActividad()">
+            <ion-label position="stacked">Tipo de actividad</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="tipoActividadDescripcion"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item (click)="selectEstado()">
+            <ion-label position="stacked">Estado</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="EstadoDescripcion"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Teléfono</ion-label>
+            <ion-input type="number" [(ngModel)]="PhoneNumber"></ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label position="floating">Fecha</ion-label>
+            <ion-datetime [pickerOptions]="{mode:'ios'}"
+                          displayFormat="DD-MM-YYYY"
+                          [(ngModel)]="fecha" min="{{minPiker}}"></ion-datetime>
+        </ion-item>
+        <ion-item>
+            <ion-label position="floating">Hora</ion-label>
+            <ion-datetime [pickerOptions]="{mode:'ios'}"
+                          displayFormat="HH:mm"
+                          [(ngModel)]="hora" min="{{minPiker}}"></ion-datetime>
+        </ion-item>
+        <ion-item (click)="selectAsunto()">
+            <ion-label position="stacked">Asunto</ion-label>
+            <ion-input readonly="true" type="text" [(ngModel)]="AsuntoDescripcion"></ion-input>
+            <ion-icon name="arrow-dropdown" class="animated bounceIn" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item>
+            <ion-label position="stacked">Comentarios</ion-label>
+            <ion-input type="text" [(ngModel)]="comentarios"></ion-input>
+        </ion-item>
+    </ion-card>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="2">
+            </ion-col>
+            <ion-col size="8">
+                <ion-button expand="block" shape="round" (click)="register()" color="primary">
+                    {{textAction}}
+                </ion-button>
+            </ion-col>
+            <ion-col size="2">
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>
+

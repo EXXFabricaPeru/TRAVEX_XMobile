@@ -1,0 +1,109 @@
+<ion-header translucent>
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+            <small>PERFIL</small>
+        </ion-title>
+        <ion-buttons slot="end">
+            <app-net></app-net>
+            <ion-button (click)="pageSincronizar()">
+                <ion-icon slot="icon-only" name="sync"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <div class="fondoPefil">
+        <div class="perfilFoto">
+            <img src="../../assets/man.svg" style="width: 100%" />
+        </div>
+    </div>
+    <ion-card-header>
+        <ion-card-title class="ion-text-center">Sucursal: {{data.sucursal}}</ion-card-title>
+        <ion-card-subtitle class="ion-text-center"> {{data.nombrePersona}} {{data.apellidoPPersona}}
+            {{data.apellidoMPersona}}
+        </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+        <p><b>Dispositivo : </b> {{data.equipo}}</p>
+        <p><b>Estado : </b> {{data.estadoTerminal}} </p>
+    </ion-card-content>
+    <ion-list>
+        <ion-list-header lines="inset" color="medium">
+            <ion-label>Monedas asignadas</ion-label>
+        </ion-list-header>
+        <ion-item *ngFor="let mone of data.monedas">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p><b>Nombre: </b> {{mone.Name}}</p>
+                <p><b>Code: </b> {{mone.DocumentsCode}}</p>
+            </ion-label>
+        </ion-item>
+        <ion-list-header lines="inset" color="medium">
+            Dosificación asignada
+        </ion-list-header>
+        <ion-item *ngFor="let dosi of data.docificacion">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p><b>Grupo cliente: </b> {{dosi.nombreGrupoCliente}}</p>
+                <p><b>Grupo producto: </b> {{dosi.nombreGrupoProducto}}</p>
+                <p><b>Papel: </b> {{dosi.papel}}</p>
+                <p><b>Autorización: </b> {{dosi.U_NumeroAutorizacion}}</p>
+                <p><b>Serie: </b> {{dosi.U_SeriesName}}</p>
+            </ion-label>
+        </ion-item>
+        <ion-list-header lines="inset" color="medium">
+            Almacenes asignados
+        </ion-list-header>
+        <ion-item *ngFor="let almacen of data.almacenes">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p><b>Nombre: </b> {{almacen.nombre}}</p>
+                <p><b>Dirección: </b> {{almacen.direccion }}</p>
+                <p><b>Teléfono: </b> {{almacen.telefonouno}}</p>
+                <p><b>Teléfono II: </b> {{almacen.telefonodos}}</p>
+                <p><b>Almacén: </b> {{almacen.WarehouseName}}</p>
+            </ion-label>
+        </ion-item>
+        <ion-list-header lines="inset" color="medium">
+            Bancos
+        </ion-list-header>
+        <ion-item *ngFor="let bancos of data.gestionbancos">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                <p><b>CODE: </b> {{bancos.BankCode}}</p>
+                <p><b>NOMBRE: </b> {{bancos.BankName }}</p>
+            </ion-label>
+        </ion-item>
+
+
+    </ion-list>
+    <ion-list>
+        <ion-list-header lines="inset" color="medium">
+            <ion-label>Almacenamiento local.</ion-label>
+        </ion-list-header>
+        <!--ion-item (click)="iniLimpiar()">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                Eliminar base de datos del dispositivo.
+            </ion-label>
+        </ion-item-->
+        <ion-item (click)="resetpass()">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                Cambiar password
+            </ion-label>
+        </ion-item>
+
+
+        <ion-item (click)="downloadData()">
+            <ion-checkbox slot="start" style="display: none !important;"></ion-checkbox>
+            <ion-label>
+                Descargar DataBase
+            </ion-label>
+        </ion-item>
+
+    </ion-list>
+</ion-content>
